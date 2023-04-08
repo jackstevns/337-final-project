@@ -1,0 +1,162 @@
+/*
+    File: indexStyle.css 
+    Author: Alisha Stadler
+    CSC 337 Spring 2023
+
+    This css file sets style guides for an interface for creating
+    and logging in users for an online marketplace.
+*/
+
+body {
+    margin: 10px;
+    /* background-image: url('greenBack.jpeg'); */
+    background-color: rgb(24, 115, 24);
+    background-size: cover;
+    background-repeat: no-repeat;
+    color: white;
+}
+
+#topBar {
+    display: inline-block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 5vw;
+    background-color: black;
+}
+h3 {
+    position: absolute;
+    left: 4%;
+    top: 10%;
+    font-size: 1.5vw;
+}
+h1 {
+    font-size: 2vw;
+    text-align: center;
+    margin-top: 1.5%;
+}
+#signOutButton {
+    padding: .4vw;
+    position: absolute;
+    right: 4%;
+    top: 30%;
+}
+#leftNav {
+    position: fixed;
+    left: 0;
+    top: 5vw;
+    width: 30vw;
+    height: 92vh;
+    border: 2px solid black;
+    overflow: scroll;
+}
+#rightNav {
+    position: fixed;
+    right: 0;
+    top: 5vw;
+    width: 69.5vw;
+    height: 92vh;
+    border: 2px solid black;
+    overflow: scroll;
+}
+#profileSection {
+    background-color: black;
+    height: 12vw;
+    border: 2px solid black;
+    border-radius: 5%;
+    margin: 5%;
+}
+#profileIcon {
+    padding: 10%;
+    padding-right: 8%;
+    width: 20%;
+    display: inline;
+}
+#usernamePara {
+    display: inline-block;
+    font-size: 3vw;
+    position: relative;
+    bottom: 4vw;
+}
+#statsSection {
+    background-color: black;
+    height: 20vw;
+    border: 2px solid black;
+    border-radius: 5%;
+    margin: 5%;
+}
+#statsPara {
+    font-size: 3vw;
+    text-align: center;
+    margin: 0;
+    margin-top: 1vw;
+}
+.statsDetails {
+    font-size: 1.5vw;
+    padding-left: 2vw;
+}
+#balancePara {
+    font-size: 1.5vw;
+    position: relative;
+    bottom: 7vw;
+    text-align: center;
+}
+#infoSection {
+    background-color: black;
+    height: 11vw;
+    border: 2px solid black;
+    border-radius: 5%;
+    margin: 5%;
+    margin-bottom: 4vw;
+}
+#infoPara {
+    font-size: 3vw;
+    text-align: center;
+    margin: 0;
+    margin-top: 1vw;
+}
+a {
+    display: block;
+    text-align: center;
+    color: white;
+    margin-top: 1.5vw;
+    font-size: 1.5vw;
+}
+h2 {
+    padding-top: 7vw;
+    text-align: center;
+}
+table {
+    background-image: url(./adobeBackground.jpg);
+    background-size: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px black solid;
+    border-collapse: collapse;
+    margin-bottom: 10vw;
+    margin-top: 8vw;
+}
+tr, td {
+    font-size: 20px;
+    text-align: center;
+    width: 30vw;
+    height: 5vw;
+    border: 1px black solid;
+    border-collapse: collapse;
+}
+#joinGameButton {
+    position: absolute;
+    left: 30vw;
+    font-size: 1vw;
+    width: 8vw;
+    height: 2vw;
+    margin-bottom: 10vw;
+    margin-top: 1vw;
+}
+#exitButton {
+    margin-left: 1vw;
+    margin-top: 1vw;
+    padding: 0.5vw;
+}

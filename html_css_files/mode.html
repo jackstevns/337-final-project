@@ -1,0 +1,38 @@
+<!--
+    File: index.html 
+    Author: Alisha Stadler
+    CSC 337 Spring 2023
+
+    This html file creates a webpage that has text areas and buttons
+    to model a system for creating accounts and logging in users 
+    based on usernames and passwords.
+-->
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <title>Blackjack</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" type="text/css" href="./modeStyle.css">
+        <script></script>
+    </head>
+
+    <body>
+        <div id="topBar">
+            <h3>BlackJack</h3>
+            <h1>Welcome [username]!</h1>
+            <button id="signOutButton" type="submit" onclick="">SIGN OUT</button>
+        </div>
+        
+        <div id="bottomNav">
+            <h2>MultiPlayer Options</h2>
+            <button class="modeButtons" id="singleButton" type="submit" onclick="">Random</button>
+            <button class="modeButtons" id="multiCreateButton" type="submit" onclick="">Create Your Own</button>
+            <button class="modeButtons" id="multiJoinButton" type="submit" onclick="">Join by Code</button>
+            <div id="codeArea">
+                <label id="codeLabel"for="code">Enter Code:</label>
+                <input class="input" type="text" id="code" name="code" required>
+            </div>
+        </div>
+    </body>
+</html>

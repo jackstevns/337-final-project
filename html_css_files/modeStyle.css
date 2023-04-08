@@ -1,0 +1,104 @@
+/*
+    File: indexStyle.css 
+    Author: Alisha Stadler
+    CSC 337 Spring 2023
+
+    This css file sets style guides for an interface for creating
+    and logging in users for an online marketplace.
+*/
+
+body {
+    margin: 10px;
+    /* background-image: url('greenBack.jpeg'); */
+    background-color: rgb(24, 115, 24);
+    background-size: cover;
+    background-repeat: no-repeat;
+    color: white;
+}
+
+#topBar {
+    display: inline-block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 5vw;
+    background-color: black;
+}
+h3 {
+    position: absolute;
+    left: 4%;
+    top: 10%;
+    font-size: 1.5vw;
+}
+h1 {
+    font-size: 3vw;
+    text-align: center;
+    margin-top: 1%;
+}
+#signOutButton {
+    padding: .4vw;
+    position: absolute;
+    right: 4%;
+    top: 30%;
+}
+#bottomNav {
+    position: fixed;
+    left: 0;
+    top: 5vw;
+    width: 100%;
+    height: 92vh;
+    border: 2px solid black;
+    overflow: scroll;
+    margin-left: auto;
+    margin-right: auto;
+}
+h2 {
+    font-size: 3vw;
+    text-align: center;
+    margin-top: 3vw;
+    margin-bottom: 3vw;
+}
+.modeButtons {
+    display: block;
+    color: white;
+    margin: 2vw;
+    width: 20vw;
+    height: 6vw;
+    font-size: 1.5vw;
+    margin-bottom: 0;
+    border-radius: 5%;
+    margin-left: auto;
+    margin-right: auto;
+}
+#singleButton {
+    background-image: url(adobeBackground.jpg);
+    background-size: 130%;
+    background-position: center;
+    margin-bottom: 1vw;
+}
+#multiCreateButton {
+    background-image: url(adobeBackground.jpg);
+    background-size: 130%;
+    background-position: center;
+    margin-bottom: 1vw;
+}
+#multiJoinButton {
+    background-image: url(adobeBackground.jpg);
+    background-size: 130%;
+    background-position: center;
+    margin-bottom: 1vw;
+}
+#codeArea {
+    margin-left: 40.5vw;
+    margin-top: 1vw;
+    margin-bottom: 5vw;
+}
+#code {
+    width: 10vw;
+    height: 1.5vw;
+}
+#codeLabel {
+    font-size: 1.5vw;
+}

@@ -1,0 +1,62 @@
+<!--
+    File: index.html 
+    Author: Alisha Stadler
+    CSC 337 Spring 2023
+
+    This html file creates a webpage that has text areas and buttons
+    to model a system for creating accounts and logging in users 
+    based on usernames and passwords.
+-->
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <title>Blackjack</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" type="text/css" href="./waitingCustomStyle.css">
+        <script></script>
+    </head>
+
+    <body>
+        <div id="topBar">
+            <h3>BlackJack</h3>
+            <h1>Custom Multi-Player Waiting Room</h1>
+            <button id="signOutButton" type="submit" onclick="">SIGN OUT</button>
+        </div>
+        <div id="leftNav">
+            <div id="profileSection">
+                <img id='profileIcon'src="./profileIcon.jpeg"/>
+                <p id="usernamePara">Username</p>
+                <p id="balancePara">Balance: </p>
+            </div>
+            <div id="statsSection">
+                <p id="statsPara">Stats</p>
+                <p class="statsDetails">Rounds Played: </p>
+                <p class="statsDetails">Wins: </p>
+                <p class="statsDetails"> Losses: </p>
+                <p class="statsDetails">Ties: </p>
+            </div>
+            <div id="infoSection">
+                <p id="infoPara">How To Play</p>
+                <a href="https://support.arkadium.com/en/support/solutions/articles/44001852276--blackjack-how-to-play-fairness-scoring">Click here for instructions</a>
+            </div>
+        </div>
+        <div id="rightNav">
+            <button id="exitButton" type="submit" onclick="">Exit Waiting Room</button>
+            <h2>Waiting for players...</h2>
+            <button type="submit" id="joinGameButton">Enter Game</button>
+            <table>
+                <tr>
+                    <td>[username]</td>
+                </tr>
+                <tr><td></td></tr>
+                <tr><td></td></tr>
+                <tr><td></td></tr>
+                <tr><td></td></tr>
+                <tr><td></td></tr>
+                <tr><td></td></tr>
+            </table>
+            
+        </div>
+    </body>
+</html>

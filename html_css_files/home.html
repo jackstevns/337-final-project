@@ -1,0 +1,49 @@
+<!--
+    File: index.html 
+    Author: Alisha Stadler
+    CSC 337 Spring 2023
+
+    This html file creates a webpage that has text areas and buttons
+    to model a system for creating accounts and logging in users 
+    based on usernames and passwords.
+-->
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <title>Blackjack</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" type="text/css" href="./homeStyle.css">
+        <script></script>
+    </head>
+
+    <body>
+        <div id="topBar">
+            <h3>BlackJack</h3>
+            <h1>Welcome [username]!</h1>
+            <button id="signOutButton" type="submit" onclick="">SIGN OUT</button>
+        </div>
+        <div id="leftNav">
+            <div id="profileSection">
+                <img id='profileIcon'src="./profileIcon.jpeg"/>
+                <p id="usernamePara">Username</p>
+                <p id="balancePara">Balance: </p>
+            </div>
+            <div id="statsSection">
+                <p id="statsPara">Stats</p>
+                <p class="statsDetails">Rounds Played: </p>
+                <p class="statsDetails">Wins: </p>
+                <p class="statsDetails"> Losses: </p>
+                <p class="statsDetails">Ties: </p>
+            </div>
+            <div id="infoSection">
+                <p id="infoPara">How To Play</p>
+                <a href="https://support.arkadium.com/en/support/solutions/articles/44001852276--blackjack-how-to-play-fairness-scoring">Click here for instructions</a>
+            </div>
+        </div>
+        <div id="rightNav">
+            <button class="modeButtons" id="singleButton" type="submit" onclick="">Single-Player</button>
+            <button class="modeButtons" id="multiButton" type="submit" onclick="">Multi-Player</button>
+        </div>
+    </body>
+</html>
