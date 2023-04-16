@@ -24,12 +24,21 @@
             <h1>Single-Player Game Room</h1>
             <button id="signOutButton" type="submit" onclick="">SIGN OUT</button>
         </div>
-        <div id="gameNav">
-            <button id="exitButton" type="submit" onclick="">Exit Game Room</button>    
+        <div id = "hand">
+            <h4>Current Hand</h4>
+        </div>
+        <div id="gameNav">    
             <div id="dealerDetails">Dealer</div> 
             <div id="playerDetails">You </div>
-            <button id = hitbutton onclick = "hit();">Hit</button>
-            
+        </div>
+        <div class = "container"> 
+            <li><button id="startButton"  onclick="start();">Start</button> </li>
+            <li><button id="stayButton"  onclick="stay();">STAY</button> </li>
+            <li><button id="hitButton" onclick="hit();">HIT</button> </li>
+            <li><label for="betinput">Bet Amount :</label><input class="input" type="Number" id="betinput" name="betamount"></li>
+            <li><button type="submit" onclick="bet();">bet</button> </li>
+            <li><button id="exitButton" onclick="exit();">Exit Game Room</button></li>
+             </ul>
         </div>
     </body>
 </html>

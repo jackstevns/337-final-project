@@ -203,3 +203,9 @@ function getUser(){
     window.location.href = '/multiGame.html'
    }
 
+   function start(){
+        fetch('/start/deal')
+        .then((results) => {
+            console.log(results)
+        })
+   }
