@@ -203,9 +203,22 @@ function getUser(){
     window.location.href = '/multiGame.html'
    }
 
+  hands = {}
    function start(){
-        fetch('/start/deal')
+        fetch('/start/deal/')
+
+
+
+      .then(() => {
+
+        players= ["dealer", currentUser]
+        for(let i = 0; i <= players.length; i++){
+          let url = 'get/hand/'+players[i];
+        fetch(url)
         .then((results) => {
-            console.log(results)
+          return results.text()
         })
-   }
+        .then((text) => {
+          
+        })
+        })

@@ -40,7 +40,8 @@ var UserSchema = new mongoose.Schema( {
   roundsPlayed: Number,
   Wins: Number,
   Losses: Number,
-  Ties: Number
+  Ties: Number,
+  CurrentHand:[Object]
 });
 var User = mongoose.model('User', UserSchema);
 
@@ -199,24 +200,62 @@ app.get('/search/items/:KEYWORD', (req, res) => {
 
 // (GET) Changes the id status from SALE to SOlD
 // Pushes the item id to purchase list of the user.
-app.get('/buy/item/:ITEMID', (req, res) => {
-  var currentId = req.params.ITEMID
+deck = []
+app.get('/start/deal/', (req, res) => {
+  resetDeck()
   var currentUser = req.cookies.login.username
-  Item.updateOne(
-    { _id: currentId },
-    { $set: { stat: "SOLD" } })
-    .catch(error => {
-      console.error(error);
-    });
-  User.updateOne(
-    { username: currentUser },
-    { $push: { purchases: currentId } }
-  )
-  .catch(error => {
-    console.error(error);
-  });
+  var retvalplayer = 0
+  var retvalDealer = 0
+  p1 = Card.find({Player: "In Deck"}).exec();
+  p1.then((results) => {
+    for (i in results){
+      deck.push(String(results[i]._id))
+    }
+    deal(currentUser)
+    deal("Dealer")
+    
+  })
 });
+function resetDeck(){
+  p1 = Card.updateMany({Player: {$regex: `^(?!.*In Deck)`}},
+  {$set: {Player: "In Deck"}})
+  .catch((err) => {
+    console.log(err)
+  })
+}
 
+app.get("get/hand/:username", (res,req) => {
+    currentUser = req.params.username
+    var retvalplayer = 0;
+    let p2 = Card.find({Player: currentUser}).exec()
+    p2.then((doc) =>{
+      for(i in doc){
+        console.log(doc)
+        retvalplayer = retvalplayer + doc[i].Value
+        
+      }
+      res.end(currentUser+": "+ retvalplayer)
+      })
+    })
+  })
+}
+
+function deal(currentUser){
+    for(let i = 0; i <= 1; i++){
+    let randomNumber = Math.floor(Math.random() * deck.length);
+    //console.log(deck.length);
+    Card.updateOne(
+    { _id: deck[randomNumber]},
+    { $set: { Player: currentUser } })
+    .then((results) => {
+      //console.log(results)
+      deck.splice(randomNumber, 1);
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+  }
+}
 
 
 
@@ -224,7 +263,7 @@ app.get('/buy/item/:ITEMID', (req, res) => {
 //(POST) Should add a user to the database. The username and
 // password should be sent as POST parameter(s).
 
-app.post('/add/card/:Username', (req, res) => {
+app.post('/hit/card/:Username', (req, res) => {
   let getuser = req.cookies.login.username
    var newItem = new Item( {
     title: req.body.title,
@@ -313,4 +352,4 @@ app.get('/get/user', (req, res) => {
     .then((doc) => {
         res.end(JSON.stringify(doc[0]));
   })}
-})
+});
