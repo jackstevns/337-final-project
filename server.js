@@ -224,8 +224,9 @@ function resetDeck(){
   })
 }
 
-app.get("get/hand/:username", (res,req) => {
-    currentUser = req.params.username
+app.get("get/hand/", (res,req) => {
+    currentUser = req.cookies.login.username
+
     var retvalplayer = 0;
     let p2 = Card.find({Player: currentUser}).exec()
     p2.then((doc) =>{
@@ -236,9 +237,11 @@ app.get("get/hand/:username", (res,req) => {
       }
       res.end(currentUser+": "+ retvalplayer)
       })
+    p2.catch((err) => {
+      console.log(err)
     })
-  })
-}
+    })
+
 
 function deal(currentUser){
     for(let i = 0; i <= 1; i++){

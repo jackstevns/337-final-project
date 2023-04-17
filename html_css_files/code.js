@@ -206,19 +206,18 @@ function getUser(){
   hands = {}
    function start(){
         fetch('/start/deal/')
-
-
-
       .then(() => {
-
         players= ["dealer", currentUser]
         for(let i = 0; i <= players.length; i++){
-          let url = 'get/hand/'+players[i];
+          let url = 'get/hand/';
         fetch(url)
         .then((results) => {
           return results.text()
         })
         .then((text) => {
-          
+          console.log(text)
+          hands[players[i]] = text
         })
-        })
+      }}).then(() =>{console.log(hands)})
+        
+      }
