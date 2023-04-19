@@ -45,6 +45,26 @@ var UserSchema = new mongoose.Schema( {
 });
 var User = mongoose.model('User', UserSchema);
 
+function loadcards(){
+  let p = Card.find({}).deleteMany().exec();
+  const lineReader = require('line-reader');
+  lineReader.eachLine('./cards.txt', function (line) {
+      if (line[0] != '#') {
+          var params = line.split(',');
+          //console.log(params)
+          var newCard = new Card({
+              Suit: params[0],
+              Name: params[1],
+              Value: Number(params[3]),
+              Player: "In Deck"
+          });
+        
+          newCard.save();
+      }
+  });
+  }
+  loadcards();
+
 //add current session
 sessions = {}
 function  addSession(user) {
@@ -203,19 +223,24 @@ app.get('/search/items/:KEYWORD', (req, res) => {
 deck = []
 app.get('/start/deal/', (req, res) => {
   resetDeck()
-  var currentUser = req.cookies.login.username
-  var retvalplayer = 0
-  var retvalDealer = 0
+  var currentUser = req.cookies.login.username;
+  var retvalplayer = 0;
+  var retvalDealer = 0;
   p1 = Card.find({Player: "In Deck"}).exec();
   p1.then((results) => {
-    for (i in results){
+   //console.log(results);
+    for (i in results) {
       deck.push(String(results[i]._id))
     }
     deal(currentUser)
-    deal("Dealer")
-    
-  })
+    deal("Dealer");
+    // getHand(currentUser);
+    // getHand("Dealer");
+  }).then(() => {
+    res.end(getHand(currentUser));
+  });
 });
+
 function resetDeck(){
   p1 = Card.updateMany({Player: {$regex: `^(?!.*In Deck)`}},
   {$set: {Player: "In Deck"}})
@@ -224,8 +249,23 @@ function resetDeck(){
   })
 }
 
-app.get("get/hand/", (res,req) => {
-    currentUser = req.cookies.login.username
+function getHand(user) {
+  var retvalplayer = 0;
+  let p1 = Card.find({Player: user}).exec();
+  p1.then((doc) => {
+    for (i in doc) {
+      console.log(doc[i]);
+      retvalplayer += doc[i].Value;
+    }
+    return retvalplayer;
+  }).catch((err) => {
+    console.log(err);
+  });
+}
+
+app.get("/get/hand/", (res,req) => {
+    // console.log(req.cookies.login);
+    // currentUser = req.cookies.login.username
 
     var retvalplayer = 0;
     let p2 = Card.find({Player: currentUser}).exec()
@@ -246,12 +286,12 @@ app.get("get/hand/", (res,req) => {
 function deal(currentUser){
     for(let i = 0; i <= 1; i++){
     let randomNumber = Math.floor(Math.random() * deck.length);
-    //console.log(deck.length);
+    console.log(deck.length);
     Card.updateOne(
     { _id: deck[randomNumber]},
     { $set: { Player: currentUser } })
     .then((results) => {
-      //console.log(results)
+      //console.log(results);
       deck.splice(randomNumber, 1);
     })
     .catch((error) => {
@@ -296,8 +336,9 @@ app.post('/hit/card/:Username', (req, res) => {
  // If the username is valid it will return Login, 
  // else it will return Login Failed.
   app.post('/account/login/', (req, res) => {
-    var { u, p} = req.body;
+    var {u, p} = req.body;
     let p1 = User.find({username: u, password: p})
+    currentUser = req.body.username;
     p1.then((doc) => {
       if (doc.length > 0 ){
         let id = addSession(u)
