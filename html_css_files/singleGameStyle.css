@@ -105,3 +105,20 @@ button{
     left: 0;
      border: 2px white solid;
 }
+
+#card {
+    margin: 12px;
+    top: 15%;
+    position:relative;
+    height: 8vw;
+    width: 5vw;
+}
+
+#currenthand{
+    top: 10%;
+    display: inline;
+}
+
+#box{
+    top: 10%;
+}

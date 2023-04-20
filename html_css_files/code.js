@@ -212,9 +212,17 @@ function start(){
      .then((results) =>{
        return results.json();
      })
+
      .then((text) =>{
-      
-      console.log(text)})})}
+      final = ''
+      //<img id = "card" src="img/aceclubs.png" alt="My Image"></img>
+      for( c in text.CurrentHand){
+        console.log(text.CurrentHand[c].Suit.toLowerCase()+text.CurrentHand[c].Value+".png")
+        final +='<img id = "card" src="img/'+text.CurrentHand[c].Suit.toLowerCase()+text.CurrentHand[c].Name.toLowerCase()+".png"+'" alt="My Image"></img>'
+      }
+      console.log(final)
+      current = document.getElementById("currenthand");
+      current.innerHTML = final})})}
     
 //   .then(() => {
 //     players= ["Dealer", currentUser]

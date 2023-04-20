@@ -25,7 +25,7 @@ mongoose.connection.on('error', () => {
 // creates Schema for items 
 var CardSchema = new mongoose.Schema( {
     Suit: String,
-    FaceCard: Boolean,
+    Name: String,
     Value: Number,
     Player: String
 });
@@ -263,7 +263,7 @@ function deal(currentUser){
     p1.then((results) => {
     var randomNumber = Math.floor(Math.random() * results.length);
     console.log(results.length);
-    var card = {"Suit": results[randomNumber].Suit, "Value": results[randomNumber].Value}
+    var card = {"Suit": results[randomNumber].Suit, "Value": results[randomNumber].Value, "Name": results[randomNumber].Name }
     Card.updateOne(
     { _id: String(results[randomNumber]._id)},
     { $set: { Player: currentUser } })
