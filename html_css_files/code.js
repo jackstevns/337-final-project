@@ -204,6 +204,14 @@ function getUser(){
     window.location.href = '/multiGame.html'
    }
 
+   function exit(){
+    window.location.href = '/home.html'
+   }
+
+   function signout(){
+    window.location.href = '/index.html'
+   }
+
 hands = {}
 function start(){
   fetch('/start/deal/')
