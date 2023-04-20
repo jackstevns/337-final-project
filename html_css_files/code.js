@@ -207,16 +207,22 @@ hands = {}
 function start(){
   fetch('/start/deal/')
   .then((result) => {
-    console.log(result);
-  })
-  // .then(() => {
-  //   players= ["Dealer", currentUser]
-  //   for(let i = 0; i <= players.length; i++){
-  //     let url = '/get/hand/';
-  //     fetch(url).then((results) => {
-  //       return results.text()
-  //     }).then((text) => {
-  //       console.log(text)
-  //       hands[players[i]] = text
-  //     })
-}
+    url = '/get/user'
+    fetch(url)
+     .then((results) =>{
+       return results.json();
+     })
+     .then((text) =>{
+      
+      console.log(text)})})}
+    
+//   .then(() => {
+//     players= ["Dealer", currentUser]
+//     for(let i = 0; i <= players.length; i++){
+//       let url = '/get/hand/';
+//       fetch(url).then((results) => {
+//         return results.text()
+//       }).then((text) => {
+//         console.log(text)
+//       })
+// }})}

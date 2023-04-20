@@ -220,87 +220,67 @@ app.get('/search/items/:KEYWORD', (req, res) => {
 
 // (GET) Changes the id status from SALE to SOlD
 // Pushes the item id to purchase list of the user.
-deck = []
+hands = {}
 app.get('/start/deal/', (req, res) => {
   resetDeck()
   var currentUser = req.cookies.login.username;
   var retvalplayer = 0;
   var retvalDealer = 0;
-  p1 = Card.find({Player: "In Deck"}).exec();
-  p1.then((results) => {
-   //console.log(results);
-    for (i in results) {
-      deck.push(String(results[i]._id))
-    }
-    deal(currentUser)
-    deal("Dealer");
-    // getHand(currentUser);
-    // getHand("Dealer");
-  }).then(() => {
-    res.end(getHand(currentUser));
-  });
-});
+  deal(currentUser)
+  deal("Dealer");
+  res.end()
+  })
+
 
 function resetDeck(){
   p1 = Card.updateMany({Player: {$regex: `^(?!.*In Deck)`}},
   {$set: {Player: "In Deck"}})
+  User.updateMany(
+    { CurrentHand: { $not: { $size: 0 } } },
+    { $set: { CurrentHand: [] } })
   .catch((err) => {
     console.log(err)
   })
 }
 
-function getHand(user) {
-  var retvalplayer = 0;
-  let p1 = Card.find({Player: user}).exec();
-  p1.then((doc) => {
-    for (i in doc) {
-      console.log(doc[i]);
-      retvalplayer += doc[i].Value;
-    }
-    return retvalplayer;
-  }).catch((err) => {
-    console.log(err);
-  });
-}
-
-app.get("/get/hand/", (res,req) => {
-    // console.log(req.cookies.login);
-    // currentUser = req.cookies.login.username
-
-    var retvalplayer = 0;
-    let p2 = Card.find({Player: currentUser}).exec()
-    p2.then((doc) =>{
-      for(i in doc){
-        console.log(doc)
-        retvalplayer = retvalplayer + doc[i].Value
-        
-      }
-      res.end(currentUser+": "+ retvalplayer)
-      })
-    p2.catch((err) => {
-      console.log(err)
-    })
-    })
-
+// function getHand(user) {
+//   var retvalplayer = '';
+//   let p1 = Card.find({Player: user}).exec();
+//   p1.then((doc) => {
+//     for (i in doc) {
+//       //console.log(doc[i]);
+//       retvalplayer += JSON.stringify(doc[i]);
+//     }
+//     hands[user] = retvalplayer
+//     console.log(hands)
+//   });
+// }
 
 function deal(currentUser){
+    hands[currentUser] = []
     for(let i = 0; i <= 1; i++){
-    let randomNumber = Math.floor(Math.random() * deck.length);
-    console.log(deck.length);
+    p1 = Card.find({Player: "In Deck"}).exec();
+    p1.then((results) => {
+    var randomNumber = Math.floor(Math.random() * results.length);
+    console.log(results.length);
+    var card = {"Suit": results[randomNumber].Suit, "Value": results[randomNumber].Value}
     Card.updateOne(
-    { _id: deck[randomNumber]},
+    { _id: String(results[randomNumber]._id)},
     { $set: { Player: currentUser } })
-    .then((results) => {
-      //console.log(results);
-      deck.splice(randomNumber, 1);
-    })
+    User.updateOne(
+      { username: currentUser},
+      { $push: { CurrentHand: card } })
     .catch((error) => {
       console.log(error);
     });
-  }
+  })
+}
 }
 
-
+app.get('/get/hand/', (req, res) => {
+  res.end(JSON.stringify(hand))
+  
+  })
 
 
 //(POST) Should add a user to the database. The username and
