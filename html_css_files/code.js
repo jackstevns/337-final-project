@@ -251,15 +251,16 @@ function hit(){
       current.innerHTML = final
       if(currentTotal > 21 ){
         alert("BUST")
-        current.innerHTML = "END"
+        //current.innerHTML = "END"
 
       }})})}
 
  
 
 DealercurrentTotal = 0;
-function stay(){
+function stay() {
   let url = '/turn/dealer/'
+  showCards();
   fetch(url)
   .then((response) =>{
     return response.text()
@@ -277,4 +278,8 @@ function stay(){
       alert("You win")
     }
   })
+}
+
+function showCards() {
+
 }
