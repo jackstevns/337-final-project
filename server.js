@@ -16,6 +16,8 @@ const multer = require('multer');
 const path = require('path');
 const { fail } = require('assert');
 
+
+
 const connection_string = 'mongodb://127.0.0.1:27017/blackjack';
 
 
@@ -132,102 +134,12 @@ app.use(express.json())
 const upload = multer({dest: __dirname + '/public_html/app'});
 
 
-
-
-
-//(GET) Should return a JSON array containing 
-//the information for every item in the database.
-app.get('/get/items/', (req, res) => {
-
-    let p1 = Item.find({}).exec();
-    p1.then( (results) => { 
-      res.end((JSON.stringify(results)));
-    });
-    p1.catch( (error) => {
-      console.log(error);
-      res.end('FAIL');
-    });
-});
-
-
-// (GET) Should return a JSON array containing 
-//every listing (item)for the user USERNAME
-app.get('/get/listings', (req, res) => {
-  let getuser = req.cookies.login.username;
-  let p1 = User.find({username: getuser}).exec();
-  p1.then( (doc) => { 
-    if(doc.length != 0){
-    let searchList = (doc[0].listings);
-    let p2 = Item.find({_id: {$in: searchList}}).exec();
-    p2.then((results) => {
-      res.send(JSON.stringify(results));
-    });
-    p2.catch((error) => {
-      console.log(error)
-      res.end("FAIL SEARCH")
-    })
-   }else{
-    res.end(JSON.stringify(doc))
-   }});
-  p1.catch( (error) => {
-    console.log(error);
-    res.end('FAIL');
-  });
-});
-
-
-//(GET) Should return a JSON array 
-//containing every purchase (item) for the user USERNAME.
-app.get('/get/purchases', (req, res) => {
-    
-    let getuser = req.cookies.login.username;
-    
-    let p1 = User.find({username: getuser}).exec();
-    p1.then( (doc) => {
-      if (doc.length != 0){ 
-      let searchList = (doc[0].purchases);
-      let p2 = Item.find({_id: {$in: searchList}}).exec();
-      p2.then((results) => {
-        res.end(JSON.stringify(results));
-      });
-      p2.catch((error) => {
-        console.log(error)
-        res.end("FAIL SEARCH")
-      })
-     }else{
-      res.end(JSON.stringify(doc))
-     }});
-    p1.catch( (error) => {
-      console.log(error);
-      res.end('FAIL');
-    });
-});
-
-
-//(GET) Should return a JSON list of every item
-// whose description has the substring KEYWORD
-app.get('/search/items/:KEYWORD', (req, res) => {
-    let keyWord = req.params.KEYWORD;
-    p1 = Item.find({description: {$regex:".*"+keyWord+".*"}}).exec();
-
-    p1.then( (results) => { 
-      res.end( JSON.stringify(results) );
-    });
-    p1.catch( (error) => {
-      console.log(error);
-      res.end('FAIL');
-    });
-});
-
-
 // (GET) Changes the id status from SALE to SOlD
 // Pushes the item id to purchase list of the user.
 hands = {}
 app.get('/start/deal/', (req, res) => {
   resetDeck()
   var currentUser = req.cookies.login.username;
-  var retvalplayer = 0;
-  var retvalDealer = 0;
   deal(currentUser)
   deal("Dealer");
   res.end()
@@ -247,18 +159,6 @@ function resetDeck(){
   })
 }
 
-// function getHand(user) {
-//   var retvalplayer = '';
-//   let p1 = Card.find({Player: user}).exec();
-//   p1.then((doc) => {
-//     for (i in doc) {
-//       //console.log(doc[i]);
-//       retvalplayer += JSON.stringify(doc[i]);
-//     }
-//     hands[user] = retvalplayer
-//     console.log(hands)
-//   });
-// }
 
 function deal(currentUser){
   User.updateOne(
