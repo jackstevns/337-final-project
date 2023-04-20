@@ -1,5 +1,5 @@
 ##Cardswith Suit, Number, FaceCard_boolean ,value
-Hearts,Ace,False,1
+Hearts,Ace,False,11
 Hearts,2,False,2
 Hearts,3,False,3
 Hearts,4,False,4
@@ -12,7 +12,7 @@ Hearts,10,False,10
 Hearts,Jack,True,10
 Hearts,Queen,True,10
 Hearts,King,True,10
-Clubs,Ace,False,1
+Clubs,Ace,False,11
 Clubs,2,False,2
 Clubs,3,False,3
 Clubs,4,False,4
@@ -25,7 +25,7 @@ Clubs,10,False,10
 Clubs,Jack,True,10
 Clubs,Queen,True,10
 Clubs,King,True,10
-Spades,Ace,False,1
+Spades,Ace,False,11
 Spades,2,False,2
 Spades,3,False,3
 Spades,4,False,4
@@ -38,7 +38,7 @@ Spades,10,False,10
 Spades,Jack,True,10
 Spades,Queen,True,10
 Spades,King,True,10
-Diamonds,Ace,False,1
+Diamonds,Ace,False,11
 Diamonds,2,False,2
 Diamonds,3,False,3
 Diamonds,4,False,4

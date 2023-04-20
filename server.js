@@ -14,6 +14,7 @@ const fs = require('fs');
 const cookieParser = require('cookie-parser');
 const multer = require('multer');
 const path = require('path');
+const { fail } = require('assert');
 
 const connection_string = 'mongodb://127.0.0.1:27017/blackjack';
 
@@ -41,7 +42,8 @@ var UserSchema = new mongoose.Schema( {
   Wins: Number,
   Losses: Number,
   Ties: Number,
-  CurrentHand:[Object]
+  CurrentHand:[Object],
+  Total:Number
 });
 var User = mongoose.model('User', UserSchema);
 
@@ -237,7 +239,9 @@ function resetDeck(){
   {$set: {Player: "In Deck"}})
   User.updateMany(
     { CurrentHand: { $not: { $size: 0 } } },
-    { $set: { CurrentHand: [] } })
+    { 
+      $set: { CurrentHand: []} 
+    })
   .catch((err) => {
     console.log(err)
   })
@@ -257,24 +261,31 @@ function resetDeck(){
 // }
 
 function deal(currentUser){
-    hands[currentUser] = []
+  User.updateOne(
+    { username: currentUser },
+    { $set: { Total: 0} })
+    .then(() => {
     for(let i = 0; i <= 1; i++){
     p1 = Card.find({Player: "In Deck"}).exec();
     p1.then((results) => {
     var randomNumber = Math.floor(Math.random() * results.length);
-    console.log(results.length);
     var card = {"Suit": results[randomNumber].Suit, "Value": results[randomNumber].Value, "Name": results[randomNumber].Name }
     Card.updateOne(
     { _id: String(results[randomNumber]._id)},
     { $set: { Player: currentUser } })
     User.updateOne(
       { username: currentUser},
-      { $push: { CurrentHand: card } })
+      { 
+        $push: { CurrentHand: card },
+        $inc: {Total: results[randomNumber].Value}
+      })
+    .then(() =>{
+      console.log(results[randomNumber].Value)})
     .catch((error) => {
       console.log(error);
     });
   })
-}
+}})
 }
 
 app.get('/get/hand/', (req, res) => {
@@ -286,31 +297,28 @@ app.get('/get/hand/', (req, res) => {
 //(POST) Should add a user to the database. The username and
 // password should be sent as POST parameter(s).
 
-app.post('/hit/card/:Username', (req, res) => {
-  let getuser = req.cookies.login.username
-   var newItem = new Item( {
-    title: req.body.title,
-    description: req.body.desc,
-    image: req.file.filename,
-    stat: req.body.stat
+app.get('/hit/card/', (req, res) => {
+  let currentUser = req.cookies.login.username
+  p1 = Card.find({Player: "In Deck"}).exec();
+  p1.then((results) => {
+  var randomNumber = Math.floor(Math.random() * results.length);
+  console.log("yes");
+  var card = {"Suit": results[randomNumber].Suit, "Value": results[randomNumber].Value, "Name": results[randomNumber].Name }
+  Card.updateOne(
+  { _id: String(results[randomNumber]._id)},
+  { $set: { Player: currentUser } })
+  User.updateOne(
+    { username: currentUser},
+    { 
+      $push: { CurrentHand: card }, 
+      $inc: {Total: results[randomNumber].Value}
+    })
+  
+  .catch((error) => {
+    console.log(error);
   });
-  let p =newItem.save()
-  p.then((doc) =>{
-      if (doc.stat.toLowerCase() == "sale"){
-      let p2 = User.findOneAndUpdate({username:getuser}, 
-        {$push: {listings: doc._id}});
-        p2.catch( (err) => { 
-          console.log(err);});}
-      if (doc.stat.toLowerCase() == "sold"){
-        let p2 = User.findOneAndUpdate({username:getuser}, 
-          {$push: {purchases: doc._id}});
-          p2.catch( (err) => { 
-            console.log(err);
-            res.end('FAIL')});}
-    }).then((results) => {
-      return res.redirect("/home.html")
-  })
-  });
+  res.end()})
+})
 
  // Will login the user and return a text. 
  // If the username is valid it will return Login, 
@@ -350,7 +358,8 @@ app.post('/hit/card/:Username', (req, res) => {
         roundsPlayed: 0,
         Wins: 0,
         Losses: 0,
-        Ties: 0
+        Ties: 0,
+        Total:0
     });
   
     let p1 = newUser.save();
@@ -377,3 +386,78 @@ app.get('/get/user', (req, res) => {
         res.end(JSON.stringify(doc[0]));
   })}
 });
+
+app.get('/get/dealer', (req, res) => {
+ 
+    let p = User.find({username: "Dealer"}).exec()
+    .then((doc) => {
+        res.end(JSON.stringify(doc[0]));
+  })
+});
+
+app.get('/turn/dealer/', (req,res) =>{
+  final = ''
+  var keepGoing = true;
+  while(keepGoing){
+  let p2 = User.find({username:"Dealer"}).exec();
+    p2.then((doc) =>{
+      if ( doc[0].Total >= 17){
+        console.log("end");
+        keepGoing = false;
+        console.log(keepGoing)
+        p = User.find({username: req.cookies.login.username}).exec()
+        p.then((results) =>{
+          if(results[0].Total == dealerhand){
+            res.end("TIE")
+          } else if (results[0].Total > dealerhand){
+            res.end("PLAYER")
+          } else if (results[0].Total < dealerhand){
+            res.end("DEALER")
+          }
+      })} else if ( doc[0].Total > 21){
+        console.log("yes");
+        keepGoing = false;
+        final = "Bust"
+      } else {
+          newCard("Dealer");
+      }
+  })
+  }
+   res.end(final)
+  })
+
+
+
+function newCard(currentUser){
+  p1 = Card.find({Player: "In Deck"}).exec();
+  p1.then((results) => {
+  var randomNumber = Math.floor(Math.random() * results.length);
+  console.log("yes");
+  var card = {"Suit": results[randomNumber].Suit, "Value": results[randomNumber].Value, "Name": results[randomNumber].Name }
+  Card.updateOne(
+  { _id: String(results[randomNumber]._id)},
+  { $set: { Player: currentUser } })
+  User.updateOne(
+    { username: currentUser},
+    { 
+      $push: { CurrentHand: card },
+      $inc: {Total: card.Value} 
+  })
+  .catch((err) =>{
+    console.log(err)
+  })
+})
+}
+
+function winner(dealerhand){
+  p = User.find({username: req.cookies.login.username}).exec()
+  p.then((results) =>{
+    if(results[0].Total == dealerhand){
+      return "Tie"
+    } else if (results[0].Total > dealerhand){
+      return "PLAYER"
+    } else if (results[0].Total > dealerhand){
+      return "DEALER"
+    }
+  })
+}

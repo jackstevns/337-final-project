@@ -179,6 +179,7 @@ function getUser(){
     console.log(text)
     usernameNav= document.getElementById("Welcome");
     usernameNav.innerText = "Welcome "+text.username+"!";
+    currentUser = text.username
     usernameNav= document.getElementById("usernamePara");
     usernameNav.innerText = text.username;
     bal= document.getElementById("balancePara");
@@ -214,7 +215,7 @@ function start(){
      })
 
      .then((text) =>{
-      final = ''
+      var final = ''
       //<img id = "card" src="img/aceclubs.png" alt="My Image"></img>
       for( c in text.CurrentHand){
         console.log(text.CurrentHand[c].Suit.toLowerCase()+text.CurrentHand[c].Value+".png")
@@ -224,13 +225,56 @@ function start(){
       current = document.getElementById("currenthand");
       current.innerHTML = final})})}
     
-//   .then(() => {
-//     players= ["Dealer", currentUser]
-//     for(let i = 0; i <= players.length; i++){
-//       let url = '/get/hand/';
-//       fetch(url).then((results) => {
-//         return results.text()
-//       }).then((text) => {
-//         console.log(text)
-//       })
-// }})}
+currentTotal = 0;
+function hit(){
+  currentTotal = 0;
+  fetch('/hit/card/')
+  .then((result) => {
+    url = '/get/user'
+    fetch(url)
+      .then((results) =>{
+        console.log("yes")
+        return results.json();
+      })
+
+      .then((text) =>{
+     
+      var final = ''
+      //<img id = "card" src="img/aceclubs.png" alt="My Image"></img>
+      for( c in text.CurrentHand){
+        console.log(text.CurrentHand[c].Suit.toLowerCase()+text.CurrentHand[c].Value+".png")
+        final +='<img id = "card" src="img/'+text.CurrentHand[c].Suit.toLowerCase()+text.CurrentHand[c].Name.toLowerCase()+".png"+'" alt="My Image"></img>'
+        currentTotal += text.CurrentHand[c].Value 
+      }
+      console.log(final)
+      current = document.getElementById("currenthand");
+      current.innerHTML = final
+      if(currentTotal > 21 ){
+        alert("BUST")
+        current.innerHTML = "END"
+
+      }})})}
+
+ 
+
+DealercurrentTotal = 0;
+function stay(){
+  let url = '/turn/dealer/'
+  fetch(url)
+  .then((response) =>{
+    return response.text()
+  })
+  .then((text) => {
+    if(text == "BUST"){
+      alert("Dealer Busted. You Win")
+      showCards()
+    }
+    if(text == "DEALER"){
+      alert("Dealer Won")
+      showCards()
+    }
+    if(text == "PLAYER"){
+      alert("You win")
+    }
+  })
+}
