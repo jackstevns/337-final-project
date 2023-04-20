@@ -405,16 +405,7 @@ app.get('/turn/dealer/', (req,res) =>{
         console.log("end");
         keepGoing = false;
         console.log(keepGoing)
-        p = User.find({username: req.cookies.login.username}).exec()
-        p.then((results) =>{
-          if(results[0].Total == dealerhand){
-            res.end("TIE")
-          } else if (results[0].Total > dealerhand){
-            res.end("PLAYER")
-          } else if (results[0].Total < dealerhand){
-            res.end("DEALER")
-          }
-      })} else if ( doc[0].Total > 21){
+    } else if ( doc[0].Total > 21){
         console.log("yes");
         keepGoing = false;
         final = "Bust"
