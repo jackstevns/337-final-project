@@ -1,3 +1,6 @@
+gameInSession = false;
+curBet = 0;
+
 currentUser = ''
 function createUser() {
   let n = document.getElementById('username').value;
@@ -178,7 +181,9 @@ function getUser(){
    .then((text) =>{
     console.log(text)
     usernameNav= document.getElementById("Welcome");
+    if (usernameNav) {
     usernameNav.innerText = "Welcome "+text.username+"!";
+    }
     currentUser = text.username
     usernameNav= document.getElementById("usernamePara");
     usernameNav.innerText = text.username;
@@ -201,11 +206,19 @@ function getUser(){
    }
 
    function multiPlayer(){
-    window.location.href = '/multiGame.html'
+    window.location.href = '/mode.html'
    }
 
 hands = {}
 function start(){
+  curBet = document.getElementById("betinput").value;
+  if (curBet == "" || curBet <= 0) {
+    alert("Invalid bet amount.")
+  }
+  else {
+  //document.getElementById("betinput").isContentEditable(false);
+  //document.getElementById("dealerhand") = "";
+  gameInSession = true;
   fetch('/start/deal/')
   .then((result) => {
     url = '/get/user'
@@ -215,18 +228,36 @@ function start(){
      })
 
      .then((text) =>{
+      document.getElementById("dealerhand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/cardback.jpeg">'
       var final = ''
       //<img id = "card" src="img/aceclubs.png" alt="My Image"></img>
+      count = 0;
+      
       for( c in text.CurrentHand){
         console.log(text.CurrentHand[c].Suit.toLowerCase()+text.CurrentHand[c].Value+".png")
-        final +='<img id = "card" src="img/'+text.CurrentHand[c].Suit.toLowerCase()+text.CurrentHand[c].Name.toLowerCase()+".png"+'" alt="My Image"></img>'
+        final +='<img class = "card" src="img/'+text.CurrentHand[c].Suit.toLowerCase()+text.CurrentHand[c].Name.toLowerCase()+".png"+'" alt="My Image"></img>'
+        count += 1;
+        // if (count == 2) {
+        //   return final;
+        // }
       }
-      console.log(final)
-      current = document.getElementById("currenthand");
-      current.innerHTML = final})})}
+      return final;
+    }).then((docChange) => {
+        console.log(docChange)
+        current = document.getElementById("currenthand");
+        current.innerHTML = docChange;
+
+      }
+    ).catch((err) => {
+      console.log(err);
+    })
+  })}
+}
     
 currentTotal = 0;
 function hit(){
+  if (gameInSession) {
+
   currentTotal = 0;
   fetch('/hit/card/')
   .then((result) => {
@@ -238,48 +269,207 @@ function hit(){
       })
 
       .then((text) =>{
+        console.log(text);
      
       var final = ''
       //<img id = "card" src="img/aceclubs.png" alt="My Image"></img>
       for( c in text.CurrentHand){
         console.log(text.CurrentHand[c].Suit.toLowerCase()+text.CurrentHand[c].Value+".png")
-        final +='<img id = "card" src="img/'+text.CurrentHand[c].Suit.toLowerCase()+text.CurrentHand[c].Name.toLowerCase()+".png"+'" alt="My Image"></img>'
+        final +='<img class = "card" src="img/'+text.CurrentHand[c].Suit.toLowerCase()+text.CurrentHand[c].Name.toLowerCase()+".png"+'" alt="My Image"></img>'
         currentTotal += text.CurrentHand[c].Value 
       }
       console.log(final)
       current = document.getElementById("currenthand");
       current.innerHTML = final
       if(currentTotal > 21 ){
-        alert("BUST")
+        gameInSession = false;
+        showCards("You busted.");
+        updatePlayer("lost");
         //current.innerHTML = "END"
 
-      }})})}
+      }})})}}
 
+
+function updatePlayer(outcome) {
+  url = '/get/user'
+    fetch(url)
+      .then((results) =>{
+        console.log("yes")
+        return results.json();
+      })
+      .then((text) =>{
+        console.log(text);
+        let newBal = Number(text.balance);
+        let newRounds = text.roundsPlayed + 1;
+        let newWins = text.Wins;
+        let newLosses = text.Losses;
+        let newTies = text.Ties;
+        if (outcome == "lost") {
+          newBal -= Number(curBet);
+          newLosses += 1;
+        }
+        else if (outcome == "won") {
+          newBal += Number(curBet);
+          newBal*1;
+          newWins += 1;
+        }
+        else if (outcome == "tied") {
+          newTies += 1
+        }
+        let data = {balance: newBal, roundsPlayed: newRounds, Wins: newWins, Losses: newLosses, Ties: newTies};
+        console.log(data);
+        let p = fetch('/update/player', {
+          method: 'POST', 
+          body: JSON.stringify(data),
+          headers: {"Content-Type": "application/json"}
+        });
+        p.then((data) => {
+          return data.text(); 
+        }).then((text) => {
+          console.log(text);
+        });
+      })
+}
  
 
 DealercurrentTotal = 0;
 function stay() {
+  if (gameInSession) {
+    showCards("");
+    setTimeout(() => {
+  keepGoing = true;
+  // while (keepGoing) {
   let url = '/turn/dealer/'
-  showCards();
+  currentTotal = 0;
+  fetch('/get/dealer/')
+    .then((results) =>{
+      return results.text();
+    })
+    .then((text) =>{
+  //   var final = ''
+  //   //<img class = "card" src="img/aceclubs.png" alt="My Image"></img>
+  //   for( c in text.CurrentHand){
+  //     console.log(text.CurrentHand[c].Suit.toLowerCase()+text.CurrentHand[c].Value+".png")
+  //     final +='<img class = "card" src="img/'+text.CurrentHand[c].Suit.toLowerCase()+text.CurrentHand[c].Name.toLowerCase()+".png"+'" alt="My Image"></img>'
+  //     currentTotal += text.CurrentHand[c].Value 
+  //   }
+  //   console.log(final)
+  //   current = document.getElementById("dealerhand");
+  //   current.innerHTML = final;
+  //   return;
+  // }).then(() => {
   fetch(url)
   .then((response) =>{
+    //showCards();
+    console.log(response);
     return response.text()
   })
   .then((text) => {
+    console.log(text);
     if(text == "BUST"){
-      alert("Dealer Busted. You Win")
-      showCards()
+      gameInSession = false;
+      keepGoing = false;
+      showCards("Dealer Busted. You Won.")
+      updatePlayer("won")
+      //alert("Dealer Busted. You Win")
+      
     }
     if(text == "DEALER"){
-      alert("Dealer Won")
-      showCards()
+      gameInSession = false;
+      keepGoing = false;
+      showCards("Dealer won.")
+      updatePlayer("lost")
+      //alert("Dealer Won.")
+      
     }
     if(text == "PLAYER"){
-      alert("You win")
+      gameInSession = false;
+      keepGoing = false;
+      showCards("You won.")
+      updatePlayer("won")
+      //alert("You win")
+      
+    }
+    if (text == "TIE") {
+      gameInSession = false;
+      keepGoing = false;
+      showCards("Tied.")
+      updatePlayer("tied")
+      //alert("Tied.")
+      
+    }
+    if (text == "true") {
+      showCards("")
+      gameInSession = true;
+      keepGoing = true;
+    }
+    return keepGoing;
+  }).then((bool) => {
+    if (bool) {
+      stay();
     }
   })
+})
+  
+  }, 1500)
+}
 }
 
-function showCards() {
+
+function showCards(message) {
+  currentTotal = 0;
+    fetch('/get/dealer/')
+      .then((results) =>{
+        return results.json();
+      })
+      .then((text) =>{
+      var final = ''
+      //<img id = "card" src="img/aceclubs.png" alt="My Image"></img>
+      for( c in text.CurrentHand){
+        console.log(text.CurrentHand[c].Suit.toLowerCase()+text.CurrentHand[c].Value+".png")
+        final +='<img class = "card" src="img/'+text.CurrentHand[c].Suit.toLowerCase()+text.CurrentHand[c].Name.toLowerCase()+".png"+'" alt="My Image"></img>'
+        currentTotal += text.CurrentHand[c].Value 
+      }
+      console.log(final)
+      current = document.getElementById("dealerhand");
+      if (current.innerHTML != final && final != "") {
+        current.innerHTML = final
+      }
+    }).then(() => {
+      if (message != "") {
+        alert(message + " Updated stats.");
+      }
+    })
+
+}
+
+function clearCardDisplay() {
+  document.getElementById("currentHand").innerHTML = "";
+  document.getElementById("dealerhand") = "";
+}
+
+function exit() {
+  window.location.href = './home.html';
+}
+
+function signOut() {
+  window.location.href = './index.html';
+  // Erase cookies and session!!!
+}
+
+function randomRoom() {
+  window.location.href = './waitingRandom.html'
+}
+
+function createRoom() {
+  window.location.href = './waitingCustom.html'
+}
+
+function joinRoom() {
+  code = document.getElementById('code');
+  if (code.value) {
+    // and if code exists
+    window.location.href = 'waitingCustom.html'
+  }
 
 }

@@ -54,17 +54,19 @@ h1 {
     overflow: scroll;
     background-color: black;
     background-image: url(./pokerTable.webp);
-    background-size: 75%;
+    background-size: 65%;
     background-position: top;
     background-repeat: no-repeat;
     background-attachment: local;
 }
 
 #dealerDetails, #playerDetails{
+    font-size: 1vw;
     width: 10vw;
-    height: 4vw;
+    height: 2vw;
     margin-top: 1.5vw;
-    padding-top: 2vw;
+    margin-bottom: 3vw;
+    padding-top: 1vw;
     padding-bottom: 0;
     border: 2px white solid;
     text-align: center;
@@ -72,19 +74,9 @@ h1 {
     margin-right: auto;
 }
 #playerDetails {
-    margin-top: 28vw;
+    margin-top: 3vw;
     margin-bottom: 8vw;
 }
-.container {
-    position: fixed;
-    display: flex;
-    flex-direction: column;
-    top: 24vw;
-    height: 100%;
-    left: 0vw;
-    width:20vw;
-    
-  }
   
   
 li {
@@ -97,16 +89,8 @@ li {
 button{
     font-size: x-large;
 }
-
-#hand{
-    color:white;
-    position: fixed;
-    top:10vw;
-    left: 0;
-     border: 2px white solid;
-}
-
-#card {
+.card {
+    /* visibility: hidden; */
     margin: 12px;
     top: 15%;
     position:relative;
@@ -114,11 +98,39 @@ button{
     width: 5vw;
 }
 
-#currenthand{
+#currenthand, #dealerhand{
     top: 10%;
     display: inline;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-#box{
+.box{
     top: 10%;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
 }
+.container {
+    position: fixed;
+    /* display: flex; */
+    /* flex-direction: column; */
+    bottom: 0vw;
+    /* top: 24vw; */
+    /* height: 100%; */
+    left: 0vw;
+    width:20vw;
+    
+  }
+  .bottomButtons {
+    font-size: 1vw;
+  }
+  #betinput {
+    font-size: 1vw;
+    text-align: center;
+    margin-top: .5vw;
+    width: 10vw;
+  }
+  label {
+    font-size: 1vw;
+  }

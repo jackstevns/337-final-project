@@ -22,27 +22,23 @@
         <div id="topBar">
             <h3>BlackJack</h3>
             <h1>Single-Player Game Room</h1>
-            <button id="signOutButton" type="submit" onclick="">SIGN OUT</button>
-        </div>
-        <div id = "hand">
-            <h4>Current Hand</h4>
+            <button id="signOutButton" type="submit" onclick="signOut()">SIGN OUT</button>
         </div>
         <div id="gameNav">    
-            <div id="dealerDetails">Dealer</div> 
+            <div id="dealerDetails">Dealer</div>
+            <div class="box"><span id="dealerhand"> <img style="visibility: hidden;" class= "card"> </span></div><br>
+            <div class="box"><span id="currenthand"> <img style="visibility: hidden;" class = "card"> </span></div> 
             <div id="playerDetails">You </div>
         </div>
         <!-- <div id = "box"><span id="currenthand"> <img id = "card" src="img/aceclubs.png" alt="My Image"> </span></div> -->
-        <div id = "box"><span id="currenthand"> <img id = "card" alt="My Image"> </span></div>
-        <div id = "box"><span id="dealerhand"> <img id = "card" alt="My Image"> </span></div>
         
         <div class = "container"> 
             <ul>
-            <li><button id="startButton" onclick="start();">Start</button> </li>
-            <li><button id="stayButton" onclick="stay();">STAY</button> </li>
-            <li><button id="hitButton" onclick="hit();">HIT</button> </li>
-            <li><label for="betinput">Bet Amount :</label><input class="input" type="Number" id="betinput" name="betamount"></li>
-            <li><button type="submit" onclick="bet();">bet</button> </li>
-            <li><button id="exitButton" onclick="exit();">Exit Game Room</button></li>
+            <li><label for="betinput">Enter bet to play:</label><input class="input" type="Number" id="betinput" name="betamount" value="10"></li>
+            <li><button class='bottomButtons' id="startButton" onclick="start();">Start</button> </li>
+            <li><button class='bottomButtons' id="stayButton" onclick="stay();">STAY</button> </li>
+            <li><button class='bottomButtons' id="hitButton" onclick="hit();">HIT</button> </li>
+            <li><button class='bottomButtons' id="exitButton" onclick="exit();">Exit Game Room</button></li>
              </ul>
         </div>
     </body>

@@ -47,6 +47,10 @@ var UserSchema = new mongoose.Schema( {
 });
 var User = mongoose.model('User', UserSchema);
 
+var DeckSchema = new mongoose.Schema( {
+  Cards: [Object]
+});
+var Deck = mongoose.model('Deck', DeckSchema);
 
 var ourDealer = new User({
   username: "Dealer",
@@ -56,7 +60,7 @@ var ourDealer = new User({
   Wins: 0,
   Losses: 0,
   Ties: 0,
-  Total:0
+  Total: 0
 });
 
 ourDealer.save();
@@ -76,10 +80,11 @@ function loadcards(){
           });
         
           newCard.save();
+
       }
   });
   }
-  loadcards();
+  
 
 //add current session
 sessions = {}
@@ -326,7 +331,6 @@ app.get('/hit/card/', (req, res) => {
   }).then((total) => {
     console.log(total);
     if (total > 21) {
-      console.log('total is larger')
       res.end();
     }
   }).then(() => {
@@ -433,64 +437,68 @@ app.get('/turn/dealer/', (req,res) =>{
   final = ''
   var keepGoing = true;
   console.log('starting dealer turn')
+  //while (keepGoing)
+  keepGoing = false;
   let p2 = User.find({username:"Dealer"}).exec();
     p2.then((doc) =>{
       //console.log(doc[0].CurrentHand)
       //console.log(doc[0].Total);
-      //console.log('this is doc' + doc[0]);
+      console.log('this is doc' + doc[0]);
+      if (doc[0].Total > 21) {
+          console.log("busting dealer");
+          keepGoing = false;
+          final = "BUST";
+          res.end(final);
+          
+      }
       if ( doc[0].Total >= 17){
         console.log("end");
         keepGoing = false;
-        console.log(keepGoing)
-        let currentUser = req.cookies.login.username
+        // console.log(keepGoing);
+        currentUser = req.cookies.login.username
         p0 = User.find({username: currentUser}).exec().then((results) => {
           temp = results[0];
+       
           h = temp.CurrentHand;
           total = 0;
           for (var x in h) {
             v = h[x];
             total += v.Value;
           }
+          console.log(total);
           return total;
           
         }).then((total) => {
+          console.log(total);
           if (total > doc[0].Total) {
             final = "PLAYER";
+            res.end(final);
           }
           else if (total == doc[0].Total) {
             final = "TIE";
+            res.end(final);
           }
           else {
-            final = "DEALER"
+            final = "DEALER";
+            res.end(final);
           }
         });
 
     } else if ( doc[0].Total > 21){
         console.log("busting dealer");
         keepGoing = false;
-        final = "BUST"
-      } else {
-          newCard("Dealer");
+        final = "BUST";
+        res.end(final);
+      } 
+      else {
+        console.log("hitting dealer");
+        keepGoing = true;
+        newCard("Dealer");
+        res.end('true')
+        // newCard("Dealer");
       }
+      //res.end("true");
   })
-  // while(keepGoing){
-  // let p2 = User.find({username:"Dealer"}).exec();
-  //   p2.then((doc) =>{
-  //     console.log('this is doc' + doc);
-  //     if ( doc[0].Total >= 17){
-  //       console.log("end");
-  //       keepGoing = false;
-  //       console.log(keepGoing)
-  //   } else if ( doc[0].Total > 21){
-  //       console.log("yes");
-  //       keepGoing = false;
-  //       final = "Bust"
-  //     } else {
-  //         newCard("Dealer");
-  //     }
-  // })
-  // }
-   res.end(final)
   })
 
 
@@ -528,3 +536,17 @@ function winner(dealerhand){
     }
   })
 }
+
+app.post('/update/player/', (req, res) => {
+  let p = User.find({username: req.cookies.login.username}).exec()
+  .then((doc) => {
+    console.log(doc[0]);
+    doc[0].updateOne(req.body)
+    .then((results) => {
+      res.end('Updated stats');
+  });
+  p1.catch((err) => {
+    console.log(err)
+    res.end("Failed")
+  });
+})})
