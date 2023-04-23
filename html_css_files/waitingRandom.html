@@ -14,14 +14,14 @@
         <title>Blackjack</title>
         <meta charset="utf-8">
         <link rel="stylesheet" type="text/css" href="./waitingRandomStyle.css">
-        <script></script>
+        <script src = "code.js"></script>
     </head>
 
-    <body>
+    <body onload="getUser()">
         <div id="topBar">
             <h3>BlackJack</h3>
             <h1>Random Multi-Player Waiting Room</h1>
-            <button id="signOutButton" type="submit" onclick="">SIGN OUT</button>
+            <button id="signOutButton" type="submit" onclick="signOut();">SIGN OUT</button>
         </div>
         <div id="leftNav">
             <div id="profileSection">
@@ -31,10 +31,10 @@
             </div>
             <div id="statsSection">
                 <p id="statsPara">Stats</p>
-                <p class="statsDetails">Rounds Played: </p>
-                <p class="statsDetails">Wins: </p>
-                <p class="statsDetails"> Losses: </p>
-                <p class="statsDetails">Ties: </p>
+                <p class="statsDetails" id="rounds">Rounds Played: </p>
+                <p class="statsDetails" id="wins">Wins: </p>
+                <p class="statsDetails" id="loss"> Losses: </p>
+                <p class="statsDetails" id="ties">Ties: </p>
             </div>
             <div id="infoSection">
                 <p id="infoPara">How To Play</p>
@@ -42,7 +42,7 @@
             </div>
         </div>
         <div id="rightNav">
-            <button id="exitButton" type="submit" onclick="">Exit Waiting Room</button>
+            <button id="exitButton" type="submit" onclick="exit()">Exit Waiting Room</button>
             <h2>Waiting for players...</h2>
             <table>
                 <tr>
