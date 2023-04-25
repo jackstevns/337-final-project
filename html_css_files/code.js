@@ -1,5 +1,6 @@
 gameInSession = false;
 curBet = 0;
+document.getElementById("stayButton")
 
 currentUser = ''
 function createUser() {
@@ -225,6 +226,8 @@ hands = {}
 function start() {
   document.getElementById("startButton").disabled = true;
   document.getElementById("betinput").disabled = true;
+  document.getElementById("stayButton").disabled = false;
+  document.getElementById("hitButton").disabled = false;
   curBet = document.getElementById("betinput").value;
   if (curBet == "" || curBet <= 0) {
     alert("Invalid bet amount.")
@@ -246,21 +249,35 @@ function start() {
             var final = ''
             //<img id = "card" src="img/aceclubs.png" alt="My Image"></img>
             count = 0;
-
+            bjString = "";
             for (c in text.CurrentHand) {
+              bjString += text.CurrentHand[c].Suit.toLowerCase();
               console.log(text.CurrentHand[c].Suit.toLowerCase() + text.CurrentHand[c].Value + ".png")
               final += '<img class = "card" src="img/' + text.CurrentHand[c].Suit.toLowerCase() + text.CurrentHand[c].Name.toLowerCase() + ".png" + '" alt="My Image"></img>'
               count += 1;
               if (count == 2) {
-                return final;
+                if (text.Total == 21) {
+                  gameInSession = false;
+                  current = document.getElementById("currenthand");
+                  current.innerHTML = final;
+                  setTimeout(showCards("Blackjack! You win."), 15000)
+                  updatePlayer("won");
+                  return "";
+                }
+                else {
+                  return final;
+                }
+                
               }
             }
             //return final;
           }).then((docChange) => {
-            console.log(docChange)
+            if (docChange != "") {
+              console.log(docChange)
             current = document.getElementById("currenthand");
             current.innerHTML = docChange;
-
+            }
+            
           }
           ).catch((err) => {
             console.log(err);
@@ -356,6 +373,8 @@ DealercurrentTotal = 0;
 function stay() {
   if (gameInSession) {
     showCards("");
+    document.getElementById("stayButton").disabled = true;
+    document.getElementById("hitButton").disabled = true;
     setTimeout(() => {
       keepGoing = true;
       // while (keepGoing) {
@@ -455,9 +474,11 @@ function showCards(message) {
       if (current.innerHTML != final && final != "") {
         current.innerHTML = final
         if (message != "") {
-          alert(message + " Updated stats.");
           document.getElementById("startButton").disabled = false;
           document.getElementById("betinput").disabled = false;
+          document.getElementById("stayButton").disabled = true;
+          document.getElementById("hitButton").disabled = true;
+          alert(message + " Updated stats.");
         }
       }
     }).then(() => {
