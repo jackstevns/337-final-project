@@ -26,17 +26,17 @@ mongoose.connection.on('error', () => {
   console.log('There was a problem connecting to mongoDB');
 });
 // creates Schema for items 
-var CardSchema = new mongoose.Schema( {
-    Suit: String,
-    Name: String,
-    Value: Number,
-    Player: String
+var CardSchema = new mongoose.Schema({
+  Suit: String,
+  Name: String,
+  Value: Number,
+  Player: String
 });
 var Card = mongoose.model('Card', CardSchema);
 
 
 // creates Schema for 
-var UserSchema = new mongoose.Schema( {
+var UserSchema = new mongoose.Schema({
   username: String,
   password: String,
   balance: Number,
@@ -44,12 +44,12 @@ var UserSchema = new mongoose.Schema( {
   Wins: Number,
   Losses: Number,
   Ties: Number,
-  CurrentHand:[Object],
-  Total:Number
+  CurrentHand: [Object],
+  Total: Number
 });
 var User = mongoose.model('User', UserSchema);
 
-var DeckSchema = new mongoose.Schema( {
+var DeckSchema = new mongoose.Schema({
   Cards: [Object]
 });
 var Deck = mongoose.model('Deck', DeckSchema);
@@ -67,40 +67,43 @@ var ourDealer = new User({
 
 ourDealer.save();
 
-function loadcards(){
-  let p = Card.find({}).deleteMany().exec();
-  const lineReader = require('line-reader');
-  lineReader.eachLine('./cards.txt', function (line) {
+function loadcards() {
+  let p = Card.find({}).deleteMany().exec().then((res) => {
+    console.log(res)
+    const lineReader = require('line-reader');
+    lineReader.eachLine('./cards.txt', function (line) {
       if (line[0] != '#') {
-          var params = line.split(',');
-          //console.log(params)
-          var newCard = new Card({
-              Suit: params[0],
-              Name: params[1],
-              Value: Number(params[3]),
-              Player: "In Deck"
-          });
-        
-          newCard.save();
+        var params = line.split(',');
+        //console.log(params)
+        var newCard = new Card({
+          Suit: params[0],
+          Name: params[1],
+          Value: Number(params[3]),
+          Player: "In Deck"
+        });
+
+        newCard.save();
 
       }
-  });
-  }
-  
+    });
+  })
+}
+loadcards()
+
 
 //add current session
 sessions = {}
-function  addSession(user) {
+function addSession(user) {
   var sessionId = Math.floor(Math.random() * 100000);
   var sessionStart = Date.now();
-  sessions[user] = {'sid': sessionId, 'start': sessionStart};
+  sessions[user] = { 'sid': sessionId, 'start': sessionStart };
   return sessionId;
 }
 
 //checks to see if user has active session
-function doesUserHaveSession(user,sessionId){
+function doesUserHaveSession(user, sessionId) {
   let entry = sessions[user]
-  if (entry != undefined){ 
+  if (entry != undefined) {
     return entry.sid === sessionId
   }
   return false;
@@ -109,14 +112,14 @@ function doesUserHaveSession(user,sessionId){
 // cleans up session once they reach a certain age
 const SESSION_LENGTH = 6000000
 
-function  cleanupSeasons(){
+function cleanupSeasons() {
   let CurrentTime = Date.now()
-  for( i in sessions) {
+  for (i in sessions) {
     let sess = sessions[i];
-    if (sess.start + SESSION_LENGTH < CurrentTime){
-      console.log('removing session for user: '+ i)
+    if (sess.start + SESSION_LENGTH < CurrentTime) {
+      console.log('removing session for user: ' + i)
       delete sessions[i]
-    }else{
+    } else {
       console.log('keeping session for user: ' + i)
     }
   }
@@ -126,15 +129,15 @@ setInterval(cleanupSeasons, 6000000)
 
 // It will redirected the page back to the login 
 // if no cookie is found.
-function authenticate ( req, res, next){
+function authenticate(req, res, next) {
   let c = req.cookies;
-  
-  if (c && c.login){
-    
+
+  if (c && c.login) {
+
     let results = doesUserHaveSession(c.login.username, c.login.sid);
-    if (results){
+    if (results) {
       next();
-      return; 
+      return;
     }
   }
   res.redirect('/index.html');
@@ -150,67 +153,121 @@ app.use(express.static('html_css_files'))
 
 app.use(parser.urlencoded({ extended: true }));
 app.use(express.json())
-const upload = multer({dest: __dirname + '/public_html/app'});
+const upload = multer({ dest: __dirname + '/public_html/app' });
 
 
 // (GET) Changes the id status from SALE to SOlD
 // Pushes the item id to purchase list of the user.
 hands = {}
 app.get('/start/deal/', (req, res) => {
-  resetDeck()
   var currentUser = req.cookies.login.username;
-  deal(currentUser)
-  deal("Dealer");
-  res.end()
-  })
+  resetDeck()
+  deal(currentUser, res)
+  deal("Dealer", res)
+
+  // bool = true;
+  // while (bool) {
+  //   User.find({username: currentUser}).exec().then((userRes) => {
+  //     User.find({username: "Dealer"}).exec().then((dealerRes) => {
+  //       if (userRes[0].CurrentHand.length == 2 && dealerRes[0].CurrentHand.length == 2) {
+  //         bool = false;
+  //         res.end();
+  //       }
+  //       else {
+  //         bool = true;
+  //       }
+  //     })
+  //   })
+  // }
+
+  // Card.find({ Player: "In Deck" }).exec().then((cards) => {
+  //   if (cards.length == 52) {
+  //     deal(currentUser)
+  //     return;
+  //   }
+  // }).then(() => {
+  //   Card.find({ Player: "In Deck" }).exec().then((cards) => {
+  //     if (cards.length == 50) {
+  //       deal("Dealer")
+  //       return;
+  //     }
+  //   }).then(() => {
+  //     res.end();
+  //   })
+  // })
+
+})
 
 
-function resetDeck(){
-  p1 = Card.updateMany({Player: {$regex: `^(?!.*In Deck)`}},
-  {$set: {Player: "In Deck"}})
+function resetDeck() {
+  p1 = Card.updateMany({ Player: { $regex: `^(?!.*In Deck)` } },
+    { $set: { Player: "In Deck" } })
   User.updateMany(
     { CurrentHand: { $not: { $size: 0 } } },
-    { 
-      $set: { CurrentHand: []} 
+    {
+      $set: { CurrentHand: [] }
+    }).then(() => {
+      return;
     })
-  .catch((err) => {
-    console.log(err)
-  })
+    .catch((err) => {
+      console.log(err)
+    })
 }
 
 
-function deal(currentUser){
+function deal(currentUser, res) {
+  console.log('dealing ' + currentUser)
   User.updateOne(
     { username: currentUser },
-    { $set: { Total: 0} })
+    { $set: { Total: 0 } })
     .then(() => {
-    for(let i = 0; i <= 1; i++){
-    p1 = Card.find({Player: "In Deck"}).exec();
-    p1.then((results) => {
-    var randomNumber = Math.floor(Math.random() * results.length);
-    var card = {"Suit": results[randomNumber].Suit, "Value": results[randomNumber].Value, "Name": results[randomNumber].Name }
-    Card.updateOne(
-    { _id: String(results[randomNumber]._id)},
-    { $set: { Player: currentUser } })
-    User.updateOne(
-      { username: currentUser},
-      { 
-        $push: { CurrentHand: card },
-        $inc: {Total: results[randomNumber].Value}
-      })
-    .then(() =>{
-      console.log(results[randomNumber].Value)})
-    .catch((error) => {
-      console.log(error);
-    });
-  })
-}})
+      for (let i = 0; i <= 1; i++) {
+        p1 = Card.find({ Player: "In Deck" }).exec();
+        p1.then((results) => {
+          //console.log(results.length);
+          var randomNumber = Math.floor(Math.random() * results.length);
+          var card = { "Suit": results[randomNumber].Suit, "Value": results[randomNumber].Value, "Name": results[randomNumber].Name }
+          Card.updateOne(
+            { _id: String(results[randomNumber]._id) },
+            { $set: { Player: currentUser } }).then((cardRes) => {
+              console.log(cardRes);
+              User.updateOne(
+                { username: currentUser },
+                {
+                  $push: { CurrentHand: card },
+                  $inc: { Total: results[randomNumber].Value }
+                })
+                
+                .then((userRes) => {
+                  //console.log(userRes)
+                  //console.log(card);
+                  User.find({ username: currentUser }).exec().then((userRes) => {
+                    User.find({ username: "Dealer" }).exec().then((dealerRes) => {
+                      if (userRes[0].CurrentHand.length == 2 && dealerRes[0].CurrentHand.length == 2) {
+                        // console.log('returning from deal for ' + currentUser)
+                        console.log('all cards have been dealt, returning to client')
+                        // Card.find({Player: "In Deck"}).exec().then((resultsa) => {console.log(resultsa); console.log(resultsa.length)});
+                        res.end();
+                      }
+                    })
+                  })
+                  //console.log(results[randomNumber].Value)
+                })
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+        })
+      }
+    })
 }
+
+
 
 app.get('/get/hand/', (req, res) => {
   res.end(JSON.stringify(hand))
-  
-  })
+
+})
 
 
 //(POST) Should add a user to the database. The username and
@@ -218,235 +275,264 @@ app.get('/get/hand/', (req, res) => {
 
 app.get('/hit/card/', (req, res) => {
   let currentUser = req.cookies.login.username
-  p0 = User.find({username: currentUser}).exec().then((results) => {
-    temp = results[0];
-    h = temp.CurrentHand;
-    total = 0;
-    for (var x in h) {
-      v = h[x];
-      total += v.Value;
-    }
-    return total;
-    
-  }).then((total) => {
-    console.log(total);
-    if (total > 21) {
+  p0 = User.find({ username: currentUser }).exec().then((results) => {
+    // temp = results[0];
+    // h = temp.CurrentHand;
+    // total = 0;
+    // for (var x in h) {
+    //   v = h[x];
+    //   total += v.Value;
+    // }
+    // return total;
+    return results[0];
+
+  }).then((us) => {
+
+    console.log(us.Total);
+    if (us.Total > 21) {
       res.end();
     }
-  }).then(() => {
-  p1 = Card.find({Player: "In Deck"}).exec();
-  p1.then((results) => {
-  var randomNumber = Math.floor(Math.random() * results.length);
-  console.log("yes");
-  var card = {"Suit": results[randomNumber].Suit, "Value": results[randomNumber].Value, "Name": results[randomNumber].Name }
-  Card.updateOne(
-  { _id: String(results[randomNumber]._id)},
-  { $set: { Player: currentUser } })
-  User.updateOne(
-    { username: currentUser},
-    { 
-      $push: { CurrentHand: card }, 
-      $inc: {Total: results[randomNumber].Value}
-    })
-  
-  .catch((error) => {
-    console.log(error);
-  });
-}).catch((error) => {
-  console.log(error);
-});
-  res.end()})
+    return us.CurrentHand.length;
+  }).then((oldLength) => {
+    p1 = Card.find({ Player: "In Deck" }).exec();
+    p1.then((results) => {
+      var randomNumber = Math.floor(Math.random() * results.length);
+      console.log("dealing");
+      var card = { "Suit": results[randomNumber].Suit, "Value": results[randomNumber].Value, "Name": results[randomNumber].Name }
+      Card.updateOne(
+        { _id: String(results[randomNumber]._id) },
+        { $set: { Player: currentUser } }).then(() => {
+
+
+          User.updateOne(
+            { username: currentUser },
+            {
+              $push: { CurrentHand: card },
+              $inc: { Total: results[randomNumber].Value }
+            }).then(() => {
+              User.find({ username: currentUser }).exec().then((userRes) => {
+                if (userRes[0].CurrentHand.length == oldLength + 1) {
+                  console.log(userRes[0].CurrentHand)
+                  // console.log('returning from deal for ' + currentUser)
+                  console.log('dealt a card to ' + currentUser)
+                  res.end();
+                }
+              })
+            })
+        })
+
+        .catch((error) => {
+          console.log(error);
+        });
+    }).catch((error) => {
+      console.log(error);
+    });
+  })
 })
 
- // Will login the user and return a text. 
- // If the username is valid it will return Login, 
- // else it will return Login Failed.
-  app.post('/account/login/', (req, res) => {
-    var {u, p} = req.body;
-    let p1 = User.find({username: u, password: p})
-    currentUser = req.body.username;
-    p1.then((doc) => {
-      if (doc.length > 0 ){
-        let id = addSession(u)
-        res.cookie('login', {username: u, sid: id}, {maxAge: 300000000});
-        
-        res.send("LOGIN");
-      }else{
-        res.end("Login Failed")
-      } 
-    });
-  });
- 
+// Will login the user and return a text. 
+// If the username is valid it will return Login, 
+// else it will return Login Failed.
+app.post('/account/login/', (req, res) => {
+  var { u, p } = req.body;
+  let p1 = User.find({ username: u, password: p })
+  currentUser = req.body.username;
+  p1.then((doc) => {
+    if (doc.length > 0) {
+      let id = addSession(u)
+      res.cookie('login', { username: u, sid: id }, { maxAge: 300000000 });
 
- 
- 
-  // (POST) Should add an item to the database.
-  // The items information (title, description, image, price, status) 
-  //should be included as POST parameters. The item should be added the
-  // USERNAMEs list of listings.  
-  app.post('/add/user/', (req, res) => {
-    let p = User.find({username: req.body.username}).exec()
-    .then((doc) => {
-        console.log(doc.length)
-      if(doc.length == 0){
-    var newUser = new User({
-        username: req.body.username,
-        password: req.body.password,
-        balance: 1000,
-        roundsPlayed: 0,
-        Wins: 0,
-        Losses: 0,
-        Ties: 0,
-        Total:0
-    });
-  
-    let p1 = newUser.save();
-    p1.then((doc) => {
-      res.end('Created new Account!');
-    });
-    p1.catch((err) => {
-      console.log(err)
-      res.end("Failed")
-    });
-  }else{
-    res.end("Username Taken")
-  }});
+      res.send("LOGIN");
+    } else {
+      res.end("Login Failed")
+    }
   });
+});
+
+
+
+
+// (POST) Should add an item to the database.
+// The items information (title, description, image, price, status) 
+//should be included as POST parameters. The item should be added the
+// USERNAMEs list of listings.  
+app.post('/add/user/', (req, res) => {
+  let p = User.find({ username: req.body.username }).exec()
+    .then((doc) => {
+      console.log(doc.length)
+      if (doc.length == 0) {
+        var newUser = new User({
+          username: req.body.username,
+          password: req.body.password,
+          balance: 1000,
+          roundsPlayed: 0,
+          Wins: 0,
+          Losses: 0,
+          Ties: 0,
+          Total: 0
+        });
+
+        let p1 = newUser.save();
+        p1.then((doc) => {
+          res.end('Created new Account!');
+        });
+        p1.catch((err) => {
+          console.log(err)
+          res.end("Failed")
+        });
+      } else {
+        res.end("Username Taken")
+      }
+    });
+});
 const port = 80;
 app.listen(port, () => {
   console.log('server has started');
 });
 
 app.get('/get/user', (req, res) => {
-  if(req.cookies && req.cookies.login ){
-    let p = User.find({username: req.cookies.login.username}).exec()
-    .then((doc) => {
+  if (req.cookies && req.cookies.login) {
+    let p = User.find({ username: req.cookies.login.username }).exec()
+      .then((doc) => {
         res.end(JSON.stringify(doc[0]));
-  })}
+      })
+  }
 });
 
 app.get('/get/dealer', (req, res) => {
- 
-    let p = User.find({username: "Dealer"}).exec()
+
+  let p = User.find({ username: "Dealer" }).exec()
     .then((doc) => {
-        res.end(JSON.stringify(doc[0]));
-  })
+      res.end(JSON.stringify(doc[0]));
+    })
 });
 
-app.get('/turn/dealer/', (req,res) =>{
+app.get('/turn/dealer/', (req, res) => {
   final = ''
   var keepGoing = true;
   console.log('starting dealer turn')
   //while (keepGoing)
   keepGoing = false;
-  let p2 = User.find({username:"Dealer"}).exec();
-    p2.then((doc) =>{
-      //console.log(doc[0].CurrentHand)
-      //console.log(doc[0].Total);
-      console.log('this is doc' + doc[0]);
-      if (doc[0].Total > 21) {
-          console.log("busting dealer");
-          keepGoing = false;
-          final = "BUST";
+  let p2 = User.find({ username: "Dealer" }).exec();
+  p2.then((doc) => {
+    //console.log(doc[0].CurrentHand)
+    //console.log(doc[0].Total);
+    //console.log('this is doc' + doc[0]);
+    if (doc[0].Total > 21) {
+      console.log("busting dealer");
+      keepGoing = false;
+      final = "BUST";
+      res.end(final);
+
+    }
+    if (doc[0].Total >= 17) {
+      console.log("dealer already has 17+, won't hit anymore");
+      keepGoing = false;
+      // console.log(keepGoing);
+      currentUser = req.cookies.login.username
+      p0 = User.find({ username: currentUser }).exec().then((results) => {
+        // temp = results[0];
+
+        // h = temp.CurrentHand;
+        // total = 0;
+        // for (var x in h) {
+        //   v = h[x];
+        //   total += v.Value;
+        // }
+        // console.log(total);
+        // return total;
+        return results[0].Total;
+
+      }).then((total) => {
+        console.log(total);
+        if (total > doc[0].Total) {
+          final = "PLAYER";
           res.end(final);
-          
-      }
-      if ( doc[0].Total >= 17){
-        console.log("end");
-        keepGoing = false;
-        // console.log(keepGoing);
-        currentUser = req.cookies.login.username
-        p0 = User.find({username: currentUser}).exec().then((results) => {
-          temp = results[0];
-       
-          h = temp.CurrentHand;
-          total = 0;
-          for (var x in h) {
-            v = h[x];
-            total += v.Value;
-          }
-          console.log(total);
-          return total;
-          
-        }).then((total) => {
-          console.log(total);
-          if (total > doc[0].Total) {
-            final = "PLAYER";
-            res.end(final);
-          }
-          else if (total == doc[0].Total) {
-            final = "TIE";
-            res.end(final);
-          }
-          else {
-            final = "DEALER";
-            res.end(final);
-          }
-        });
+        }
+        else if (total == doc[0].Total) {
+          final = "TIE";
+          res.end(final);
+        }
+        else {
+          final = "DEALER";
+          res.end(final);
+        }
+      });
 
-    } else if ( doc[0].Total > 21){
-        console.log("busting dealer");
-        keepGoing = false;
-        final = "BUST";
-        res.end(final);
-      } 
-      else {
-        console.log("hitting dealer");
-        keepGoing = true;
-        newCard("Dealer");
-        res.end('true')
-        // newCard("Dealer");
-      }
-      //res.end("true");
-  })
-  })
-
-
-
-function newCard(currentUser){
-  p1 = Card.find({Player: "In Deck"}).exec();
-  p1.then((results) => {
-  var randomNumber = Math.floor(Math.random() * results.length);
-  console.log("yes");
-  var card = {"Suit": results[randomNumber].Suit, "Value": results[randomNumber].Value, "Name": results[randomNumber].Name }
-  Card.updateOne(
-  { _id: String(results[randomNumber]._id)},
-  { $set: { Player: currentUser } })
-  User.updateOne(
-    { username: currentUser},
-    { 
-      $push: { CurrentHand: card },
-      $inc: {Total: card.Value} 
-  })
-  .catch((err) =>{
-    console.log(err)
+    } else if (doc[0].Total > 21) {
+      console.log("busting dealer");
+      keepGoing = false;
+      final = "BUST";
+      res.end(final);
+    }
+    else {
+      console.log("hitting dealer");
+      keepGoing = true;
+      newCard("Dealer", doc[0].CurrentHand.length, res);
+      // newCard("Dealer");
+    }
+    //res.end("true");
   })
 })
+
+
+
+function newCard(currentUser, oldLength, res) {
+  p1 = Card.find({ Player: "In Deck" }).exec();
+  p1.then((results) => {
+    var randomNumber = Math.floor(Math.random() * results.length);
+    console.log("yes");
+    var card = { "Suit": results[randomNumber].Suit, "Value": results[randomNumber].Value, "Name": results[randomNumber].Name }
+    
+    Card.updateOne(
+      { _id: String(results[randomNumber]._id) },
+      { $set: { Player: currentUser } }).then(() => {
+    User.updateOne(
+      { username: currentUser },
+      {
+        $push: { CurrentHand: card },
+        $inc: { Total: card.Value }
+      }).then(() => {
+        User.find({ username: currentUser }).exec().then((userRes) => {
+          if (userRes[0].CurrentHand.length == oldLength + 1) {
+            console.log(userRes[0].CurrentHand)
+            // console.log('returning from deal for ' + currentUser)
+            console.log('dealt a card to ' + currentUser)
+            res.end("true");
+          }
+        })
+      })
+    })
+      .catch((err) => {
+        console.log(err)
+      })
+  })
 }
 
-function winner(dealerhand){
-  p = User.find({username: req.cookies.login.username}).exec()
-  p.then((results) =>{
-    if(results[0].Total == dealerhand){
+function winner(dealerhand) {
+  p = User.find({ username: req.cookies.login.username }).exec()
+  p.then((results) => {
+    if (results[0].Total == dealerhand) {
       return "Tie"
-    } else if (results[0].Total > dealerhand){
+    } else if (results[0].Total > dealerhand) {
       return "PLAYER"
-    } else if (results[0].Total > dealerhand){
+    } else if (results[0].Total > dealerhand) {
       return "DEALER"
     }
   })
 }
 
 app.post('/update/player/', (req, res) => {
-  let p = User.find({username: req.cookies.login.username}).exec()
-  .then((doc) => {
-    console.log(doc[0]);
-    doc[0].updateOne(req.body)
-    .then((results) => {
-      res.end('Updated stats');
-  });
-  p1.catch((err) => {
-    console.log(err)
-    res.end("Failed")
-  });
-})})
+  let p = User.find({ username: req.cookies.login.username }).exec()
+    .then((doc) => {
+      console.log(doc[0]);
+      doc[0].updateOne(req.body)
+        .then((results) => {
+          res.end('Updated stats');
+        });
+      p1.catch((err) => {
+        console.log(err)
+        res.end("Failed")
+      });
+    })
+})
