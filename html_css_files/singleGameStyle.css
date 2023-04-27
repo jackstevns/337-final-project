@@ -60,7 +60,7 @@ h1 {
     background-attachment: local;
 }
 
-#dealerDetails, #playerDetails{
+#dealerDetails, #playerDetails, #totalDetails, #dealerTotal{
     font-size: 1vw;
     width: 10vw;
     height: 2vw;
@@ -75,9 +75,12 @@ h1 {
 }
 #playerDetails {
     margin-top: 3vw;
-    margin-bottom: 8vw;
+    margin-bottom: 2vw;
 }
   
+#dealerDetails {
+    margin-bottom: 0;
+}
   
 li {
     text-align: center;
@@ -133,4 +136,19 @@ button{
   }
   label {
     font-size: 1vw;
+  }
+  #totalDetails {
+    margin-bottom: 8vw;
+    border: 0;
+    font-size: 2vw;
+    margin-top: 0;
+    padding-top: 0;
+  }
+  #dealerTotal {
+    margin-bottom: .5vw;
+    border: 0; 
+    font-size: 2vw;
+    margin-top: 0.5vw;
+    padding-top: 0vw;
+    
   }

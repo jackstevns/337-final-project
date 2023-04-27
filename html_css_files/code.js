@@ -245,6 +245,7 @@ function start() {
           })
 
           .then((text) => {
+            document.getElementById("dealerTotal").innerHTML = '';
             document.getElementById("dealerhand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/cardback.jpeg">'
             var final = ''
             //<img id = "card" src="img/aceclubs.png" alt="My Image"></img>
@@ -256,7 +257,7 @@ function start() {
               final += '<img class = "card" src="img/' + text.CurrentHand[c].Suit.toLowerCase() + text.CurrentHand[c].Name.toLowerCase() + ".png" + '" alt="My Image"></img>'
               count += 1;
               if (count == 2) {
-                
+
                 if (text.Total == 21) {
                   gameInSession = false;
                   current = document.getElementById("currenthand");
@@ -266,6 +267,7 @@ function start() {
                   return final;
                 }
                 else {
+                  document.getElementById("totalDetails").innerHTML = 'Total: ' + text.Total;
                   return final;
                 }
               }
@@ -273,12 +275,14 @@ function start() {
             //return final;
           }).then((docChange) => {
             if (docChange != "") {
-            console.log(docChange)
-            current = document.getElementById("currenthand");
-            current.innerHTML = docChange;
+              console.log(docChange)
+              current = document.getElementById("currenthand");
+              current.innerHTML = docChange;
+              console.log(text.Total)
             }
-          }
-          ).catch((err) => {
+          }).then(() => {
+
+          }).catch((err) => {
             console.log(err);
           })
       })
@@ -288,7 +292,6 @@ function start() {
 currentTotal = 0;
 function hit() {
   if (gameInSession) {
-
     currentTotal = 0;
     fetch('/hit/card/')
       .then((result) => {
@@ -313,6 +316,7 @@ function hit() {
             console.log(final)
             current = document.getElementById("currenthand");
             current.innerHTML = final
+            document.getElementById("totalDetails").innerHTML = 'Total: ' + text.Total;
           }).then(() => {
             if (currentTotal > 21) {
               gameInSession = false;
@@ -470,6 +474,7 @@ function showCards(message) {
       }
       console.log(final)
       current = document.getElementById("dealerhand");
+      document.getElementById("dealerTotal").innerHTML = 'Total: ' + text.Total;
       if (current.innerHTML != final && final != "") {
         current.innerHTML = final
         if (message != "") {
