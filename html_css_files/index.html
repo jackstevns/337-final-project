@@ -32,7 +32,7 @@
                         <input class="input" type="password" id="password" name="password" required>
                     </li>
                     <li>
-                        <button type="submit" onclick="login();">SIGN IN</button>
+                        <button id ="login">SIGN IN</button>
                     </li>
                 </ul>
             </div>
@@ -41,5 +41,10 @@
 
             <p id="errorMsg"></p>
         </div>
+        <script src="bower_components/socket.io-client/socket.io.js"></script>
+
+        <script>
+            var socket = io();
+          </script>
     </body>
 </html>
