@@ -256,28 +256,27 @@ function start() {
               final += '<img class = "card" src="img/' + text.CurrentHand[c].Suit.toLowerCase() + text.CurrentHand[c].Name.toLowerCase() + ".png" + '" alt="My Image"></img>'
               count += 1;
               if (count == 2) {
+                
                 if (text.Total == 21) {
                   gameInSession = false;
                   current = document.getElementById("currenthand");
                   current.innerHTML = final;
                   setTimeout(showCards("Blackjack! You win."), 15000)
                   updatePlayer("won");
-                  return "";
+                  return final;
                 }
                 else {
                   return final;
                 }
-                
               }
             }
             //return final;
           }).then((docChange) => {
             if (docChange != "") {
-              console.log(docChange)
+            console.log(docChange)
             current = document.getElementById("currenthand");
             current.innerHTML = docChange;
             }
-            
           }
           ).catch((err) => {
             console.log(err);
