@@ -168,28 +168,28 @@ function resetDeck(currentUser, res) {
 function newCards(currentUser, res) {
   let p = Card.find({}).deleteMany().exec().then((result) => {
     //console.log(result)
-  })
-  const lineReader = require('line-reader');
-  lineReader.eachLine('./cards.txt', function (line, last) {
-    if (line[0] != '#') {
-      var params = line.split(',');
-      var newCard = new Card({
-        Suit: params[0],
-        Name: params[1],
-        Value: Number(params[3]),
-        Player: "In Deck",
-        PlaceInDeck: Number(params[4])
-      });
+    const lineReader = require('line-reader');
+    lineReader.eachLine('./cards.txt', function (line, last) {
+      if (line[0] != '#') {
+        var params = line.split(',');
+        var newCard = new Card({
+          Suit: params[0],
+          Name: params[1],
+          Value: Number(params[3]),
+          Player: "In Deck",
+          PlaceInDeck: Number(params[4])
+        });
 
-      newCard.save()
-    }
-    if (last) {
-      Card.find({}).exec().then((cards) => {
-        //console.log(cards)
-        makeDeck(currentUser, res);
-      })
-    }
-  });
+        newCard.save()
+      }
+      if (last) {
+        Card.find({}).exec().then((cards) => {
+          //console.log(cards)
+          makeDeck(currentUser, res);
+        })
+      }
+    });
+  })
 }
 
 function makeDeck(curUser, res) {
@@ -215,6 +215,7 @@ function shuffleDeck() {
 
     [arr[curIndex], arr[randomIndex]] = [arr[randomIndex], arr[curIndex]]
   }
+  console.log(arr)
   return arr;
 }
 
@@ -242,8 +243,8 @@ function deal2(currentUser, gameHolder, res) {
             .then(() => {
               User.find({ username: gameHolder }).exec().then((userRes) => {
                 User.find({ username: "Dealer" }).exec().then((dealerRes) => {
-                  console.log('user length: ' + userRes[0].CurrentHand.length);
-                  console.log('dealer length: ' + dealerRes[0].CurrentHand.length);
+                  //console.log('user length: ' + userRes[0].CurrentHand.length);
+                  //console.log('dealer length: ' + dealerRes[0].CurrentHand.length);
                   if (userRes[0].CurrentHand.length == 2 && dealerRes[0].CurrentHand.length == 2) {
                     // console.log('returning from deal for ' + currentUser)
                     console.log('all cards have been dealt, returning to client')
@@ -294,33 +295,38 @@ app.get('/hit/card/', (req, res) => {
     return us.CurrentHand.length;
   }).then((oldLength) => {
     Deck.find({ Game: currentUser }).exec().then((deckRes) => {
-      var cardPlace = deckRes[0].Cards[0];
-      //console.log(cardPlace)
-      Deck.updateOne(
-        { Game: currentUser },
-        { $pop: { Cards: -1 } }
-      ).then(() => {
-        Card.find({ PlaceInDeck: cardPlace }).exec().then((cardRes) => {
-          var card = { "Suit": cardRes[0].Suit, "Value": cardRes[0].Value, "Name": cardRes[0].Name }
-          User.updateOne(
-            { username: currentUser },
-            {
-              $push: { CurrentHand: card },
-              $inc: { Total: cardRes[0].Value }
-            }
-          ).then((saveRes) => {
-            User.find({ username: currentUser }).exec().then((userRes) => {
-              if (userRes[0].CurrentHand.length == oldLength + 1) {
-                console.log(userRes[0].CurrentHand)
-                // console.log('returning from deal for ' + currentUser)
-                console.log('dealt a card to ' + currentUser)
-                res.end();
-              }
+      Card.find({ PlaceInDeck: deckRes[0].Cards[0] }).exec().then((cardRes) => {
+        var card = { "Suit": cardRes[0].Suit, "Value": cardRes[0].Value, "Name": cardRes[0].Name }
+        User.updateOne(
+          { username: currentUser },
+          {
+            $push: { CurrentHand: card },
+            $inc: { Total: card.Value }
+          }
+        ).then((saveRes) => {
+          Deck.updateOne(
+            { Game: currentUser },
+            { $pop: { Cards: -1 } }
+          ).then(() => {
+            Deck.find({ Game: currentUser }).exec().then((deckResu) => {
+              //console.log(deckResu[0].Cards[0])
+            }).then(() => {
+              User.find({ username: currentUser }).exec().then((userRes) => {
+                if (userRes[0].CurrentHand.length == oldLength + 1) {
+                  console.log(userRes[0].CurrentHand)
+                  // console.log('returning from deal for ' + currentUser)
+                  console.log('dealt a card to ' + currentUser)
+                  res.end();
+                }
+              })
             })
           })
         })
       })
+    }).catch((err) => {
+      console.log(err)
     })
+
   })
 })
 
@@ -457,9 +463,19 @@ app.get('/get/dealer', (req, res) => {
     })
 });
 
-function checkAce(checkingCard) {
+function checkAce(checkingCard, pos) {
   if (checkingCard.Name == "Ace") {
+    User.updateOne(
+      { username: "Dealer" },
+      { $set: { "CurrentHand.$[element]": { Value: 1 } } },
+      { arrayFilters: [{ element: pos }] }
+    ).then(() => {
+      User.find({ username: "Dealer" }).exec().then((results) => {
+        console.log(results)
+      })
+    })
     checkingCard.Value = 1;
+
     return true;
   }
 }
@@ -475,7 +491,7 @@ app.get('/turn/dealer/', (req, res) => {
     if (doc[0].Total > 21) {
       console.log("busting dealer");
       for (var r = 0; r < doc[0].CurrentHand.length; r++) {
-        if (checkAce(doc[0].CurrentHand[r])) {
+        if (checkAce(doc[0].CurrentHand[r], r)) {
           console.log('here');
           if (doc[0].Total > 21) {
             continue;
@@ -524,21 +540,20 @@ app.get('/turn/dealer/', (req, res) => {
 
 function newCard(currentUser, gameHolder, oldLength, res) {
   Deck.find({ Game: gameHolder }).exec().then((deckRes) => {
-    var cardPlace = deckRes[0].Cards[0];
-    //console.log(cardPlace)
-    Deck.updateOne(
-      { Game: currentUser },
-      { $pop: { Cards: -1 } }
-    ).then(() => {
-      Card.find({ PlaceInDeck: cardPlace }).exec().then((cardRes) => {
-        var card = { "Suit": cardRes[0].Suit, "Value": cardRes[0].Value, "Name": cardRes[0].Name }
-        User.updateOne(
-          { username: currentUser },
-          {
-            $push: { CurrentHand: card },
-            $inc: { Total: cardRes[0].Value }
-          }
-        ).then((saveRes) => {
+    Card.find({ PlaceInDeck: deckRes[0].Cards[0] }).exec().then((cardRes) => {
+      console.log(deckRes[0].Cards)
+      var card = { "Suit": cardRes[0].Suit, "Value": cardRes[0].Value, "Name": cardRes[0].Name }
+      User.updateOne(
+        { username: currentUser },
+        {
+          $push: { CurrentHand: card },
+          $inc: { Total: cardRes[0].Value }
+        }
+      ).then((saveRes) => {
+        Deck.updateOne(
+          { Game: gameHolder },
+          { $pop: { Cards: -1 } }
+        ).then(() => {
           User.find({ username: currentUser }).exec().then((userRes) => {
             if (userRes[0].CurrentHand.length == oldLength + 1) {
               console.log(userRes[0].CurrentHand)
