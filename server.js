@@ -137,7 +137,7 @@ function resetDeck(currentUser, res) {
       $set: { CurrentHand: [], Total: 0 }
     }).then(() => {
       User.find({ username: currentUser }).exec().then((results) => {
-        console.log(results)
+        //console.log(results)
       }).then(() => {
 
 
@@ -215,38 +215,48 @@ function shuffleDeck() {
 
     [arr[curIndex], arr[randomIndex]] = [arr[randomIndex], arr[curIndex]]
   }
-  console.log(arr)
+  //console.log(arr)
   return arr;
 }
 
 function deal2(currentUser, gameHolder, res) {
   console.log('dealing ' + currentUser)
-  Deck.find({ Game: gameHolder }).exec().then((deckRes) => {
-    Card.find({ PlaceInDeck: deckRes[0].Cards[0] }).exec().then((cardRes) => {
-      var card = { "Suit": cardRes[0].Suit, "Value": cardRes[0].Value, "Name": cardRes[0].Name }
-      console.log(card)
-      User.updateOne(
-        { username: currentUser },
-        {
-          $push: { CurrentHand: card },
-          $inc: { Total: card.Value }
+  User.find({ username: currentUser }).exec().then((userRes) => {
+    us = userRes[0]
+
+    Deck.find({ Game: gameHolder }).exec().then((deckRes) => {
+      Card.find({ PlaceInDeck: deckRes[0].Cards[0] }).exec().then((cardRes) => {
+        if (us.Total >= 11 && cardRes[0].Name == 'Ace') {
+          var card = { "Suit": cardRes[0].Suit, "Value": 1, "Name": cardRes[0].Name }
+          var cardVal = 1;
         }
-      ).then((saveRes) => {
-        // console.log(saveRes)
-        Deck.updateOne(
-          { Game: gameHolder },
-          { $pop: { Cards: -1 } }
-        ).then(() => {
-          Deck.find({ Game: gameHolder }).exec().then((deckRes2) => {
-            //console.log(deckRes2[0].Cards.length)
-          })
-            .then(() => {
+        else {
+          var card = { "Suit": cardRes[0].Suit, "Value": cardRes[0].Value, "Name": cardRes[0].Name }
+          var cardVal = card.Value
+        }
+        User.updateOne(
+          { username: currentUser },
+          {
+            $push: { CurrentHand: card },
+            $inc: { Total: cardVal }
+          }
+        ).then((saveRes) => {
+          // console.log(saveRes)
+          Deck.updateOne(
+            { Game: gameHolder },
+            { $pop: { Cards: -1 } }
+          ).then(() => {
+            Deck.find({ Game: gameHolder }).exec().then((deckRes2) => {
+              //console.log(deckRes2[0].Cards.length)
+            }).then(() => {
               User.find({ username: gameHolder }).exec().then((userRes) => {
                 User.find({ username: "Dealer" }).exec().then((dealerRes) => {
                   //console.log('user length: ' + userRes[0].CurrentHand.length);
                   //console.log('dealer length: ' + dealerRes[0].CurrentHand.length);
                   if (userRes[0].CurrentHand.length == 2 && dealerRes[0].CurrentHand.length == 2) {
                     // console.log('returning from deal for ' + currentUser)
+                    initialAceCheck(currentUser)
+                    initialAceCheck("Dealer")
                     console.log('all cards have been dealt, returning to client')
                     // Card.find({Player: "In Deck"}).exec().then((resultsa) => {console.log(resultsa); console.log(resultsa.length)});
                     res.end();
@@ -263,20 +273,104 @@ function deal2(currentUser, gameHolder, res) {
                 })
               })
             })
-            .catch((error) => {
-              console.log(error);
-            });
-        }).catch((error) => {
-          console.log(error);
-        });
+          })
+        })
       })
-    }).catch((error) => {
-      console.log(error);
-    });
-  }).catch((error) => {
-    console.log(error);
-  });
+    })
+  })
+}
 
+function initialAceCheck(currentUser) {
+  User.find({ username: currentUser }).exec().then((userRes) => {
+    let suit1 = userRes[0].CurrentHand[0].Suit;
+    let name1 = userRes[0].CurrentHand[0].Name;
+    let val1 = userRes[0].CurrentHand[0].Value;
+    let val2 = userRes[0].CurrentHand[1].Value;
+    if (val1 == 11 && val2 == 11) {
+      var card = { "Suit": suit1, "Value": 1, "Name": name1 }
+      User.updateOne(
+        { username: currentUser },
+        { $pop: { CurrentHand: -1 } }
+      ).then(() => {
+        User.updateOne(
+          { username: currentUser },
+          { $push: { CurrentHand: card } }
+        ).then(() => {
+          return;
+        })
+      })
+    }
+  })
+}
+
+function aceCheck(userData, i, final, res) {
+  return new Promise((resolve, reject) => {
+    if (userData.CurrentHand[i].Value != 11) {
+      //console.log('in ace check, card is not an ace, returning to route')
+      resolve();
+      // User.find({ username: userData.username }).exec().then((results) => {
+      //   console.log("i=" + i + ", " + results[0].Total)
+      //   if (i == final) {
+      //     console.log('i == final, sending back to route')
+      //     res.end(JSON.stringify(results[0]))
+      //   }
+      // })
+    }
+    else {
+      changeStr = "CurrentHand." + i + ".Value";
+      //console.log(userData.CurrentHand[i].Value);
+      updateAce(userData).then((changeRes) => {
+        //console.log(changeRes)
+        console.log('updated value of ace to 1, this is the hand now:')
+        User.find({ username: userData.username }).exec().then((results) => {
+          //console.log(results[0].CurrentHand)
+          //console.log("i=" + i + ", " + results[0].Total)
+          if (i == final) {
+            //console.log('i == final, sending back to route')
+            if (userData.username == "Dealer") {
+              resolve();
+            }
+            else {
+              res.end(JSON.stringify(results[0]))
+            }
+
+          }
+          else if (results[0].Total < 21) {
+            if (userData.username == "Dealer") {
+              resolve();
+            }
+            else {
+              //console.log('total is <21 now, sending back to client')
+              res.end(JSON.stringify(results[0]))
+            }
+
+          }
+        })
+      })
+    }
+  })
+}
+
+async function callAceCheck(us, res) {
+  let i = 0;
+  for (i; i < us.CurrentHand.length; i++) {
+    if (us.Total > 21) {
+      //console.log('sending to aceCheck(), i = ' + i)
+      const result = await aceCheck(us, i, us.CurrentHand.length - 1, res);
+    }
+  }
+  return;
+}
+
+async function updateAce(userData) {
+  const query = { username: userData.username, "CurrentHand.Value": 11 };
+  //console.log(query)
+  const updateDocument = {
+    $set: { "CurrentHand.$.Value": 1 },
+    $inc: { Total: -10 }
+  }
+  const result = await User.updateOne(query, updateDocument);
+  return result;
 }
 
 app.get('/get/hand/', (req, res) => {
@@ -288,20 +382,28 @@ app.get('/hit/card/', (req, res) => {
   User.find({ username: currentUser }).exec().then((results) => {
     return results[0]
   }).then((us) => {
-    console.log(us.Total);
+    //console.log(us.Total);
     if (us.Total > 21) {
       res.end();
     }
-    return us.CurrentHand.length;
-  }).then((oldLength) => {
+    return us;
+  }).then((us) => {
+    var oldLength = us.CurrentHand.length
     Deck.find({ Game: currentUser }).exec().then((deckRes) => {
       Card.find({ PlaceInDeck: deckRes[0].Cards[0] }).exec().then((cardRes) => {
-        var card = { "Suit": cardRes[0].Suit, "Value": cardRes[0].Value, "Name": cardRes[0].Name }
+        if (us.Total >= 11 && cardRes[0].Name == 'Ace') {
+          var card = { "Suit": cardRes[0].Suit, "Value": 1, "Name": cardRes[0].Name }
+          var cardVal = 1;
+        }
+        else {
+          var card = { "Suit": cardRes[0].Suit, "Value": cardRes[0].Value, "Name": cardRes[0].Name }
+          var cardVal = card.Value
+        }
         User.updateOne(
           { username: currentUser },
           {
             $push: { CurrentHand: card },
-            $inc: { Total: card.Value }
+            $inc: { Total: cardVal }
           }
         ).then((saveRes) => {
           Deck.updateOne(
@@ -323,72 +425,26 @@ app.get('/hit/card/', (req, res) => {
           })
         })
       })
-    }).catch((err) => {
-      console.log(err)
     })
-
   })
 })
 
-//(POST) Should add a user to the database. The username and
-// password should be sent as POST parameter(s).
-
-// app.get('/hit/card/', (req, res) => {
-//   let currentUser = req.cookies.login.username
-//   p0 = User.find({ username: currentUser }).exec().then((results) => {
-//     // temp = results[0];
-//     // h = temp.CurrentHand;
-//     // total = 0;
-//     // for (var x in h) {
-//     //   v = h[x];
-//     //   total += v.Value;
-//     // }
-//     // return total;
-//     return results[0];
-
-//   }).then((us) => {
-
-//     console.log(us.Total);
-//     if (us.Total > 21) {
-//       res.end();
-//     }
-//     return us.CurrentHand.length;
-//   }).then((oldLength) => {
-//     p1 = Card.find({ Player: "In Deck" }).exec();
-//     p1.then((results) => {
-//       var randomNumber = Math.floor(Math.random() * results.length);
-//       console.log("dealing");
-//       var card = { "Suit": results[randomNumber].Suit, "Value": results[randomNumber].Value, "Name": results[randomNumber].Name }
-//       Card.updateOne(
-//         { _id: String(results[randomNumber]._id) },
-//         { $set: { Player: currentUser } }).then(() => {
-
-
-//           User.updateOne(
-//             { username: currentUser },
-//             {
-//               $push: { CurrentHand: card },
-//               $inc: { Total: results[randomNumber].Value }
-//             }).then(() => {
-//               User.find({ username: currentUser }).exec().then((userRes) => {
-//                 if (userRes[0].CurrentHand.length == oldLength + 1) {
-//                   console.log(userRes[0].CurrentHand)
-//                   // console.log('returning from deal for ' + currentUser)
-//                   console.log('dealt a card to ' + currentUser)
-//                   res.end();
-//                 }
-//               })
-//             })
-//         })
-
-//         .catch((error) => {
-//           console.log(error);
-//         });
-//     }).catch((error) => {
-//       console.log(error);
-//     });
-//   })
-// })
+app.get('/check/ace/', (req, res) => {
+  let currentUser = req.cookies.login.username;
+  User.find({ username: currentUser }).exec().then((results) => {
+    return results[0];
+  }).then((us) => {
+    //console.log('in the server route')
+    callAceCheck(us, res).then(() => {
+      User.find({ username: currentUser }).exec().then((results) => {
+        //console.log('in route and returning to client')
+        res.end(JSON.stringify(results[0]));
+      })
+    })
+  })
+  //return us.CurrentHand.length;
+}
+)
 
 // Will login the user and return a text. 
 // If the username is valid it will return Login, 
@@ -416,7 +472,7 @@ app.post('/account/login/', (req, res) => {
 app.post('/add/user/', (req, res) => {
   let p = User.find({ username: req.body.username }).exec()
     .then((doc) => {
-      console.log(doc.length)
+      //console.log(doc.length)
       if (doc.length == 0) {
         var newUser = new User({
           username: req.body.username,
@@ -463,23 +519,6 @@ app.get('/get/dealer', (req, res) => {
     })
 });
 
-function checkAce(checkingCard, pos) {
-  if (checkingCard.Name == "Ace") {
-    User.updateOne(
-      { username: "Dealer" },
-      { $set: { "CurrentHand.$[element]": { Value: 1 } } },
-      { arrayFilters: [{ element: pos }] }
-    ).then(() => {
-      User.find({ username: "Dealer" }).exec().then((results) => {
-        console.log(results)
-      })
-    })
-    checkingCard.Value = 1;
-
-    return true;
-  }
-}
-
 app.get('/turn/dealer/', (req, res) => {
   final = ''
   var currentUser = req.cookies.login.username
@@ -489,59 +528,71 @@ app.get('/turn/dealer/', (req, res) => {
     // console.log(doc[0].CurrentHand)
     // console.log(doc[0].Total);
     if (doc[0].Total > 21) {
-      console.log("busting dealer");
-      for (var r = 0; r < doc[0].CurrentHand.length; r++) {
-        if (checkAce(doc[0].CurrentHand[r], r)) {
-          console.log('here');
-          if (doc[0].Total > 21) {
-            continue;
-          }
-          else {
+      callAceCheck(doc[0], res).then(() => {
+        User.find({ username: "Dealer" }).exec().then((newDoc) => {
+          if (newDoc[0].Total > 21) {
+            console.log("busting dealer");
             final = "BUST";
             res.end(final);
           }
-        }
+          else {
+
+          }
+        })
+      })
+    }
+    User.find({ username: "Dealer" }).exec().then((doc) => {
+      //console.log(doc[0].Total)
+      if (doc[0].Total >= 17) {
+        //console.log("dealer already has 17+, won't hit anymore");
+        p0 = User.find({ username: currentUser }).exec().then((results) => {
+          return results[0].Total;
+        }).then((total) => {
+          var userTot = total;
+          User.find({ username: "Dealer" }).exec().then((doc) => {
+            //console.log("usertotal: " + userTot)
+            //console.log('dealerTotal: ' + doc[0].Total)
+            if (doc[0].Total < 17) {
+              console.log("hitting dealer");
+              newCard("Dealer", currentUser, doc[0].CurrentHand.length, res);
+            }
+            else if (userTot > doc[0].Total) {
+              final = "PLAYER";
+              console.log('user wins')
+              res.end(final);
+            }
+            else if (userTot == doc[0].Total) {
+              final = "TIE";
+              console.log('tie')
+              res.end(final);
+            }
+            else {
+              final = "DEALER";
+              console.log('dealer wins')
+              res.end(final);
+            }
+          })
+        });
+
+      } else if (doc[0].Total > 21) {
+        console.log("busting dealer");
+        final = "BUST";
+        res.end(final);
       }
-      final = "BUST";
-      res.end(final);
-    }
-    if (doc[0].Total >= 17) {
-      console.log("dealer already has 17+, won't hit anymore");
-      p0 = User.find({ username: currentUser }).exec().then((results) => {
-        return results[0].Total;
+      else {
+        console.log("hitting dealer");
+        newCard("Dealer", currentUser, doc[0].CurrentHand.length, res);
+      }
+    })
 
-      }).then((total) => {
-        console.log(total);
-        if (total > doc[0].Total) {
-          final = "PLAYER";
-          res.end(final);
-        }
-        else if (total == doc[0].Total) {
-          final = "TIE";
-          res.end(final);
-        }
-        else {
-          final = "DEALER";
-          res.end(final);
-        }
-      });
 
-    } else if (doc[0].Total > 21) {
-      console.log("busting dealer");
-      final = "BUST";
-      res.end(final);
-    }
-    else {
-      console.log("hitting dealer");
-      newCard("Dealer", currentUser, doc[0].CurrentHand.length, res);
-    }
   })
 })
 
 function newCard(currentUser, gameHolder, oldLength, res) {
   Deck.find({ Game: gameHolder }).exec().then((deckRes) => {
     Card.find({ PlaceInDeck: deckRes[0].Cards[0] }).exec().then((cardRes) => {
-      console.log(deckRes[0].Cards)
+      //console.log(deckRes[0].Cards)
       var card = { "Suit": cardRes[0].Suit, "Value": cardRes[0].Value, "Name": cardRes[0].Name }
       User.updateOne(
         { username: currentUser },
@@ -556,7 +607,7 @@ function newCard(currentUser, gameHolder, oldLength, res) {
         ).then(() => {
           User.find({ username: currentUser }).exec().then((userRes) => {
             if (userRes[0].CurrentHand.length == oldLength + 1) {
-              console.log(userRes[0].CurrentHand)
+              //console.log(userRes[0].CurrentHand)
               // console.log('returning from deal for ' + currentUser)
               console.log('dealt a card to ' + currentUser)
               res.end("true");
@@ -573,7 +624,7 @@ function newCard(currentUser, gameHolder, oldLength, res) {
 app.post('/update/player/', (req, res) => {
   let p = User.find({ username: req.cookies.login.username }).exec()
     .then((doc) => {
-      console.log(doc[0]);
+      //console.log(doc[0]);
       doc[0].updateOne(req.body)
         .then((results) => {
           res.end('Updated stats');

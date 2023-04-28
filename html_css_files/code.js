@@ -184,24 +184,37 @@ function getUser() {
       return results.json();
     })
     .then((text) => {
-      console.log(text)
+      //console.log(text)
+      currentUser = text.username
       usernameNav = document.getElementById("Welcome");
       if (usernameNav) {
         usernameNav.innerText = "Welcome " + text.username + "!";
       }
-      currentUser = text.username
-      usernameNav = document.getElementById("usernamePara");
-      usernameNav.innerText = text.username;
+      usernamePara = document.getElementById("usernamePara");
+      if (usernamePara) {
+      usernamePara.innerText = text.username;
+      }
       bal = document.getElementById("balancePara");
-      bal.innerText = "Balance: " + text.balance;
+      if (bal) {
+        bal.innerText = "Balance: " + text.balance;
+      }
       rounds = document.getElementById("rounds");
-      rounds.innerText = "Rounds Played: " + text.roundsPlayed;
+      if (rounds) {
+        rounds.innerText = "Rounds Played: " + text.roundsPlayed;
+      }
       wins = document.getElementById("wins");
-      wins.innerText = "Wins: " + text.Wins;
+      if (wins) {
+        wins.innerText = "Wins: " + text.Wins;
+      }
       losses = document.getElementById("loss");
-      losses.innerText = "Losses: " + text.Losses;
+      if (losses) {
+        losses.innerText = "Losses: " + text.Losses;
+      }
       Ties = document.getElementById("ties");
-      Ties.innerText = "Ties: " + text.Ties;
+      if (Ties) {
+        Ties.innerText = "Ties: " + text.Ties;
+      }
+      
 
     })
 }
@@ -224,69 +237,81 @@ function signout() {
 
 hands = {}
 function start() {
-  document.getElementById("startButton").disabled = true;
-  document.getElementById("betinput").disabled = true;
-  document.getElementById("stayButton").disabled = false;
-  document.getElementById("hitButton").disabled = false;
   curBet = document.getElementById("betinput").value;
-  if (curBet == "" || curBet <= 0) {
-    alert("Invalid bet amount.")
-  }
-  else {
-    //document.getElementById("betinput").isContentEditable(false);
-    //document.getElementById("dealerhand") = "";
-    gameInSession = true;
-    fetch('/start/deal/')
-      .then((result) => {
-        url = '/get/user'
-        fetch(url)
-          .then((results) => {
-            return results.json();
-          })
+  fetch('/get/user')
+    .then((results) => {
+      return results.json();
+    }).then((text) => {
+      return text.balance
+    }).then((curBal) => {
+      if (curBet == "" || curBet <= 0) {
+        alert("Invalid bet amount.")
+      }
+      else if (curBet > curBal) {
+        alert('Your balance is too low for that bet.')
+      }
+      else {
+        document.getElementById("startButton").disabled = true;
+        document.getElementById("betinput").disabled = true;
+        document.getElementById("stayButton").disabled = false;
+        document.getElementById("hitButton").disabled = false;
+        //document.getElementById("betinput").isContentEditable(false);
+        //document.getElementById("dealerhand") = "";
+        gameInSession = true;
+        fetch('/start/deal/')
+          .then((result) => {
+            url = '/get/user'
+            fetch(url)
+              .then((results) => {
+                return results.json();
+              })
 
-          .then((text) => {
-            document.getElementById("dealerTotal").innerHTML = '';
-            document.getElementById("dealerhand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/cardback.jpeg">'
-            var final = ''
-            //<img id = "card" src="img/aceclubs.png" alt="My Image"></img>
-            count = 0;
-            bjString = "";
-            for (c in text.CurrentHand) {
-              bjString += text.CurrentHand[c].Suit.toLowerCase();
-              console.log(text.CurrentHand[c].Suit.toLowerCase() + text.CurrentHand[c].Value + ".png")
-              final += '<img class = "card" src="img/' + text.CurrentHand[c].Suit.toLowerCase() + text.CurrentHand[c].Name.toLowerCase() + ".png" + '" alt="My Image"></img>'
-              count += 1;
-              if (count == 2) {
+              .then((text) => {
+                document.getElementById("dealerTotal").innerHTML = '';
+                document.getElementById("dealerhand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/cardback.jpeg">'
+                var final = ''
+                //<img id = "card" src="img/aceclubs.png" alt="My Image"></img>
+                count = 0;
+                bjString = "";
+                for (c in text.CurrentHand) {
+                  bjString += text.CurrentHand[c].Suit.toLowerCase();
+                  //console.log(text.CurrentHand[c].Suit.toLowerCase() + text.CurrentHand[c].Value + ".png")
+                  final += '<img class = "card" src="img/' + text.CurrentHand[c].Suit.toLowerCase() + text.CurrentHand[c].Name.toLowerCase() + ".png" + '" alt="My Image"></img>'
+                  count += 1;
+                  if (count == 2) {
 
-                if (text.Total == 21) {
-                  gameInSession = false;
+                    if (text.Total == 21) {
+                      gameInSession = false;
+                      current = document.getElementById("currenthand");
+                      current.innerHTML = final;
+                      document.getElementById("totalDetails").innerHTML = 'Total: ' + text.Total;
+                      setTimeout(showCards("Blackjack! You win."), 15000)
+                      updatePlayer("won");
+                      return final;
+                    }
+                    else {
+                      document.getElementById("totalDetails").innerHTML = 'Total: ' + text.Total;
+                      return final;
+                    }
+                  }
+                }
+                //return final;
+              }).then((docChange) => {
+                if (docChange != "") {
+                  //console.log(docChange)
                   current = document.getElementById("currenthand");
-                  current.innerHTML = final;
-                  setTimeout(showCards("Blackjack! You win."), 15000)
-                  updatePlayer("won");
-                  return final;
+                  current.innerHTML = docChange;
+                  //console.log(text.Total)
                 }
-                else {
-                  document.getElementById("totalDetails").innerHTML = 'Total: ' + text.Total;
-                  return final;
-                }
-              }
-            }
-            //return final;
-          }).then((docChange) => {
-            if (docChange != "") {
-              console.log(docChange)
-              current = document.getElementById("currenthand");
-              current.innerHTML = docChange;
-              console.log(text.Total)
-            }
-          }).then(() => {
+              }).then(() => {
 
-          }).catch((err) => {
-            console.log(err);
+              }).catch((err) => {
+                console.log(err);
+              })
           })
-      })
-  }
+      }
+    })
+
 }
 
 currentTotal = 0;
@@ -295,36 +320,44 @@ function hit() {
     currentTotal = 0;
     fetch('/hit/card/')
       .then((result) => {
-        console.log(result);
+        //console.log(result);
         url = '/get/user'
-        fetch(url)
-          .then((results) => {
-            console.log("yes")
-            return results.json();
-          })
+        fetch(url).then((results) => {
+          console.log("hitting user")
+          return results.json();
+        }).then((text) => {
+          //console.log(text);
+          var final = ''
+          //<img id = "card" src="img/aceclubs.png" alt="My Image"></img>
+          for (c in text.CurrentHand) {
+            //console.log(text.CurrentHand[c].Suit.toLowerCase() + text.CurrentHand[c].Value + ".png")
+            final += '<img class = "card" src="img/' + text.CurrentHand[c].Suit.toLowerCase() + text.CurrentHand[c].Name.toLowerCase() + ".png" + '" alt="My Image"></img>'
+            currentTotal += text.CurrentHand[c].Value
+          }
+          //console.log(final)
+          current = document.getElementById("currenthand");
+          current.innerHTML = final
+          document.getElementById("totalDetails").innerHTML = 'Total: ' + text.Total;
+        }).then(() => {
+          if (currentTotal > 21) {
+            fetch('/check/ace/').then((result) => {
+              //console.log(result)
+              return result.json()
+            }).then((text2) => {
+              //console.log(text2)
+              //console.log(text2.Total);
+              if (text2.Total > 21) {
 
-          .then((text) => {
-            console.log(text);
-
-            var final = ''
-            //<img id = "card" src="img/aceclubs.png" alt="My Image"></img>
-            for (c in text.CurrentHand) {
-              console.log(text.CurrentHand[c].Suit.toLowerCase() + text.CurrentHand[c].Value + ".png")
-              final += '<img class = "card" src="img/' + text.CurrentHand[c].Suit.toLowerCase() + text.CurrentHand[c].Name.toLowerCase() + ".png" + '" alt="My Image"></img>'
-              currentTotal += text.CurrentHand[c].Value
-            }
-            console.log(final)
-            current = document.getElementById("currenthand");
-            current.innerHTML = final
-            document.getElementById("totalDetails").innerHTML = 'Total: ' + text.Total;
-          }).then(() => {
-            if (currentTotal > 21) {
-              gameInSession = false;
-              showCards("You busted.");
-              updatePlayer("lost");
-            }
-          })
-
+                gameInSession = false;
+                showCards("You busted.");
+                updatePlayer("lost");
+              }
+              else {
+                document.getElementById("totalDetails").innerHTML = 'Total: ' + text2.Total;
+              }
+            })
+          }
+        })
       })
   }
 }
@@ -334,11 +367,11 @@ function updatePlayer(outcome) {
   url = '/get/user'
   fetch(url)
     .then((results) => {
-      console.log("yes")
+      //console.log("yes")
       return results.json();
     })
     .then((text) => {
-      console.log(text);
+      //console.log(text);
       let newBal = Number(text.balance);
       let newRounds = text.roundsPlayed + 1;
       let newWins = text.Wins;
@@ -357,7 +390,7 @@ function updatePlayer(outcome) {
         newTies += 1
       }
       let data = { balance: newBal, roundsPlayed: newRounds, Wins: newWins, Losses: newLosses, Ties: newTies };
-      console.log(data);
+      //console.log(data);
       let p = fetch('/update/player', {
         method: 'POST',
         body: JSON.stringify(data),
@@ -366,7 +399,8 @@ function updatePlayer(outcome) {
       p.then((data) => {
         return data.text();
       }).then((text) => {
-        console.log(text);
+        getUser();
+        //console.log(text);
       });
     })
 }
@@ -378,82 +412,72 @@ function stay() {
     showCards("");
     document.getElementById("stayButton").disabled = true;
     document.getElementById("hitButton").disabled = true;
-    setTimeout(() => {
-      keepGoing = true;
-      // while (keepGoing) {
-      let url = '/turn/dealer/'
-      currentTotal = 0;
-      fetch('/get/dealer/')
-        .then((results) => {
-          return results.text();
-        })
-        .then((text) => {
-          //   var final = ''
-          //   //<img class = "card" src="img/aceclubs.png" alt="My Image"></img>
-          //   for( c in text.CurrentHand){
-          //     console.log(text.CurrentHand[c].Suit.toLowerCase()+text.CurrentHand[c].Value+".png")
-          //     final +='<img class = "card" src="img/'+text.CurrentHand[c].Suit.toLowerCase()+text.CurrentHand[c].Name.toLowerCase()+".png"+'" alt="My Image"></img>'
-          //     currentTotal += text.CurrentHand[c].Value 
-          //   }
-          //   console.log(final)
-          //   current = document.getElementById("dealerhand");
-          //   current.innerHTML = final;
-          //   return;
-          // }).then(() => {
-          fetch(url)
+    keepGoing = true;
+    currentTotal = 0;
+    fetch('/get/dealer/')
+      .then((results) => {
+        return results.text();
+      })
+      .then((text) => {
+        setTimeout(() => {
+          fetch('/turn/dealer/')
             .then((response) => {
-              //showCards();
-              console.log(response);
               return response.text()
             })
-            .then((text) => {
-              console.log(text);
-              if (text == "BUST") {
-                gameInSession = false;
-                keepGoing = false;
-                showCards("Dealer Busted. You Won.")
-                updatePlayer("won")
-                //alert("Dealer Busted. You Win")
+            .then((doctext) => {
+              var text = doctext;
+              fetch('/get/dealer/').then((results) => {
+                return results.json();
+              }).then((dealerRes) => {
+                document.getElementById("dealerTotal").innerHTML = "Total: " + dealerRes.Total;
+                console.log(text);
+                if (text == "BUST") {
+                  gameInSession = false;
+                  keepGoing = false;
+                  showCards("Dealer Busted. You Won.")
+                  updatePlayer("won")
+                  //alert("Dealer Busted. You Win")
 
-              }
-              if (text == "DEALER") {
-                gameInSession = false;
-                keepGoing = false;
-                showCards("Dealer won.")
-                updatePlayer("lost")
-                //alert("Dealer Won.")
+                }
+                if (text == "DEALER") {
+                  gameInSession = false;
+                  keepGoing = false;
+                  showCards("Dealer won.")
+                  updatePlayer("lost")
+                  //alert("Dealer Won.")
 
-              }
-              if (text == "PLAYER") {
-                gameInSession = false;
-                keepGoing = false;
-                showCards("You won.")
-                updatePlayer("won")
-                //alert("You win")
+                }
+                if (text == "PLAYER") {
+                  gameInSession = false;
+                  keepGoing = false;
+                  showCards("You won.")
+                  updatePlayer("won")
+                  //alert("You win")
 
-              }
-              if (text == "TIE") {
-                gameInSession = false;
-                keepGoing = false;
-                showCards("Tied.")
-                updatePlayer("tied")
-                //alert("Tied.")
+                }
+                if (text == "TIE") {
+                  gameInSession = false;
+                  keepGoing = false;
+                  showCards("Tied.")
+                  updatePlayer("tied")
+                  //alert("Tied.")
 
-              }
-              if (text == "true") {
-                showCards("")
-                gameInSession = true;
-                keepGoing = true;
-              }
-              return keepGoing;
-            }).then((bool) => {
-              if (bool) {
-                stay();
-              }
+                }
+                if (text == "true") {
+                  showCards("")
+                  gameInSession = true;
+                  keepGoing = true;
+                }
+                return keepGoing;
+              }).then((bool) => {
+                if (bool) {
+                  stay();
+                }
+              })
             })
-        })
 
-    }, 1500)
+        }, 1500)
+      })
   }
 }
 
@@ -468,11 +492,11 @@ function showCards(message) {
       var final = ''
       //<img id = "card" src="img/aceclubs.png" alt="My Image"></img>
       for (c in text.CurrentHand) {
-        console.log(text.CurrentHand[c].Suit.toLowerCase() + text.CurrentHand[c].Value + ".png")
+        //console.log(text.CurrentHand[c].Suit.toLowerCase() + text.CurrentHand[c].Value + ".png")
         final += '<img class = "card" src="img/' + text.CurrentHand[c].Suit.toLowerCase() + text.CurrentHand[c].Name.toLowerCase() + ".png" + '" alt="My Image"></img>'
         currentTotal += text.CurrentHand[c].Value
       }
-      console.log(final)
+      //console.log(final)
       current = document.getElementById("dealerhand");
       document.getElementById("dealerTotal").innerHTML = 'Total: ' + text.Total;
       if (current.innerHTML != final && final != "") {
@@ -487,7 +511,6 @@ function showCards(message) {
       }
     }).then(() => {
     })
-
 }
 
 function clearCardDisplay() {
