@@ -18,11 +18,49 @@ const { fail } = require('assert');
 
 const connection_string = 'mongodb://127.0.0.1:27017/blackjack';
 
-
 mongoose.connect(connection_string, { useNewUrlParser: true });
 mongoose.connection.on('error', () => {
   console.log('There was a problem connecting to mongoDB');
 });
+
+// creates Schema for items 
+var CardSchema = new mongoose.Schema({
+  Suit: String,
+  Name: String,
+  Value: Number,
+  Player: String,
+  PlaceInDeck: Number
+});
+var Card = mongoose.model('Card', CardSchema);
+
+// creates Schema for 
+var UserSchema = new mongoose.Schema({
+  username: String,
+  password: String,
+  balance: Number,
+  roundsPlayed: Number,
+  Wins: Number,
+  Losses: Number,
+  Ties: Number,
+  CurrentHand: [Object],
+  Total: Number
+});
+var User = mongoose.model('User', UserSchema);
+
+var DeckSchema = new mongoose.Schema({
+  Game: String,
+  Cards: [Number]
+});
+var Deck = mongoose.model('Deck', DeckSchema);
+
+var GameSchema = new mongoose.Schema({
+  Players: [String],
+  Deck: Object,
+  Turn: String,
+  Code: String
+})
+var Game = mongoose.model('Game', GameSchema);
+//Game.find({}).deleteMany().exec();
 
 //add current session
 sessions = {}
@@ -87,38 +125,6 @@ app.use(express.static('html_css_files'))
 app.use(parser.urlencoded({ extended: true }));
 app.use(express.json())
 const upload = multer({ dest: __dirname + '/public_html/app' });
-
-
-
-// creates Schema for items 
-var CardSchema = new mongoose.Schema({
-  Suit: String,
-  Name: String,
-  Value: Number,
-  Player: String,
-  PlaceInDeck: Number
-});
-var Card = mongoose.model('Card', CardSchema);
-
-// creates Schema for 
-var UserSchema = new mongoose.Schema({
-  username: String,
-  password: String,
-  balance: Number,
-  roundsPlayed: Number,
-  Wins: Number,
-  Losses: Number,
-  Ties: Number,
-  CurrentHand: [Object],
-  Total: Number
-});
-var User = mongoose.model('User', UserSchema);
-
-var DeckSchema = new mongoose.Schema({
-  Game: String,
-  Cards: [Number]
-});
-var Deck = mongoose.model('Deck', DeckSchema);
 
 // (GET) Changes the id status from SALE to SOlD
 // Pushes the item id to purchase list of the user.
@@ -669,3 +675,94 @@ function loadcards(currentUser, res) {
     });
   })
 }
+
+app.post('/new/random/game/', (req, res) => {
+  console.log('finding new game')
+  let un = req.body.username;
+  Game.find({ "Players.2": { $exists: false }, Code: { $exists: false } }).exec().then((results) => {
+    if (results.length > 0) {
+      let curID = results[0]._id;
+      Game.updateOne(
+        { _id: curID },
+        { $push: { Players: un } }
+      ).then(() => {
+        res.end("Added")
+      })
+    }
+    else {
+      var newGame = new Game({
+        Players: [un]
+      });
+      newGame.save().then(() => {
+        res.end("Created")
+      })
+    }
+  })
+});
+
+app.post('/new/code/game/', (req, res) => {
+  console.log('creating coded game');
+  
+  let un = req.body.username;
+  Game.find({Player: un}).exec().then((result) => {
+    if (result.length == 0) {
+      var code = makeCode()
+      var newGame = new Game({
+        Players: [un],
+        Code: code
+      });
+      newGame.save().then(() => {
+        res.end(code)
+      })
+    }
+  })
+})
+
+function makeCode() {
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let counter = 0;
+  while (counter < 6) {
+    result += characters.charAt(Math.floor(Math.random() * 6));
+    counter += 1;
+  }
+  return result;
+}
+
+app.get('/waiting/players/', (req, res) => {
+  console.log('finding waiting players')
+  let un = req.cookies.login.username;
+  console.log(un)
+
+  Game.find({ Players: un }).exec().then((results) => {
+    console.log(results)
+    if (results[0]) {
+      console.log("sending json")
+      res.end(JSON.stringify(results))
+    }
+    else {
+      console.log("not sending json")
+      res.end(JSON.stringify(results))
+    }
+
+  })
+})
+
+app.get('/is/game/ready/', (req, res) => {
+  console.log('finding if game is ready')
+  let un = req.cookies.login.username;
+  Game.find({ Players: un }).exec().then((results) => {
+    if (results[0]) {
+      if (results[0].Players.length == 3) {
+        res.end("true")
+      }
+      else (
+        res.end("false")
+      )
+    }
+  })
+});
+
+console.log('deleting games')
+Game.find({}).deleteMany().exec().then(() => {
+})

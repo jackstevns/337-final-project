@@ -13,28 +13,39 @@
     <head>
         <title>Blackjack</title>
         <meta charset="utf-8">
-        <link rel="stylesheet" type="text/css" href="./multiGameStyle.css">
-        <script></script>
+        <link rel="stylesheet" type="text/css" href="./singleGameStyle.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src = "code.js"></script>
     </head>
 
-    <body>
+    <body onload="getUser()">
         <div id="topBar">
             <h3>BlackJack</h3>
             <h1>Single-Player Game Room</h1>
             <button id="signOutButton" type="submit" onclick="signOut()">SIGN OUT</button>
         </div>
-        <div id="gameNav">
-            <button id="exitButton" type="submit" onclick="exit()">Exit Game Room</button>    
+        <div id="gameNav">    
             <div id="dealerDetails">Dealer</div>
-            <div id="playersDiv">
-                <div class="players" id="player1">1</div>
-                <div class="players" id="player2">2</div>
-                <div class="players" id="player3">3</div>
-                <div class="players" id="playerDetails">You</div>
-                <div class="players" id="player3">5</div>
-                <div class="players" id="player4">6</div>
-                <div class="players" id="player5">7</div>
+            <div id="dealerTotal"></div>
+            <div class="box"><span id="dealerhand"> <img style="visibility: hidden;" class= "card"> </span>
+                <div class="other"><span id="lefthand"><img  class= "card"></span><span id="lefthand"><img  class= "card"></span></div>
             </div>
+            
+            <div class="other"><span id="currenthand"> <img style="visibility: hidden;" class = "card"> </span></div> 
+            <div id="playerDetails">You </div>
+            <div id="totalDetails"></div>
+        </div>
+        <!-- <div id = "box"><span id="currenthand"> <img id = "card" src="img/aceclubs.png" alt="My Image"> </span></div> -->
+        
+        <div class = "container"> 
+            <ul>
+            <li id="balancePara"></li>
+            <li><label for="betinput">Enter bet to play:</label><input class="input" type="Number" id="betinput" name="betamount" value="10"></li>
+            <li><button class='bottomButtons' id="startButton" onclick="start();">Start</button> </li>
+            <li><button class='bottomButtons' id="stayButton" disabled="true" onclick="stay();">STAY</button> </li>
+            <li><button class='bottomButtons' id="hitButton" disabled="true" onclick="hit();">HIT</button> </li>
+            <li><button class='bottomButtons' id="exitButton" onclick="exit();">Exit Game Room</button></li>
+             </ul>
         </div>
     </body>
 </html>

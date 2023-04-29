@@ -54,43 +54,109 @@ h1 {
     overflow: scroll;
     background-color: black;
     background-image: url(./pokerTable.webp);
-    background-size: 75%;
+    background-size: 65%;
     background-position: top;
     background-repeat: no-repeat;
     background-attachment: local;
 }
-#exitButton {
-    position: fixed;
-    margin-left: 1vw;
-    margin-top: 1vw;
-    padding: 0.5vw;
-}
-.players {
-    display: inline-block;
+
+#dealerDetails, #playerDetails, #totalDetails, #dealerTotal{
+    font-size: 1vw;
     width: 10vw;
-    height: 4vw;
+    height: 2vw;
     margin-top: 1.5vw;
-    padding-top: 2vw;
+    margin-bottom: 3vw;
+    padding-top: 1vw;
     padding-bottom: 0;
-    border: .1vw white solid;
-    text-align: center;
-    margin: 1vw;
-}
-#dealerDetails {
-    width: 10vw;
-    height: 4vw;
-    margin-top: 1.5vw;
-    padding-top: 2vw;
-    padding-bottom: 0;
-    border: .1vw white solid;
+    border: 2px white solid;
     text-align: center;
     margin-left: auto;
     margin-right: auto;
 }
 #playerDetails {
-    margin-top: 28vw;
+    margin-top: 3vw;
+    margin-bottom: 2vw;
+}
+  
+#dealerDetails {
+    margin-bottom: 0;
+}
+  
+li {
+    text-align: center;
+    list-style: none;
+    margin: 5%;
+    left: 0;  
+}
+
+button{
+    font-size: x-large;
+}
+.card {
+    /* visibility: hidden; */
+    margin: 12px;
+    top: 15%;
+    position:relative;
+    height: 8vw;
+    width: 5vw;
+}
+
+#currenthand, #dealerhand{
+    top: 10%;
+    display: inline;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.box{
+    position: relative;
+    top: 10%;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+.other{
+    top: 10%;
+    text-align: center;
+    position:absolute;
+    top: 3vw;
+
+}
+.container {
+    position: fixed;
+    /* display: flex; */
+    /* flex-direction: column; */
+    bottom: 0vw;
+    /* top: 24vw; */
+    /* height: 100%; */
+    left: 0vw;
+    width:20vw;
+    
+  }
+  .bottomButtons {
+    font-size: 1vw;
+  }
+  #betinput {
+    font-size: 1vw;
+    text-align: center;
+    margin-top: .5vw;
+    width: 10vw;
+  }
+  label {
+    font-size: 1vw;
+  }
+  #totalDetails {
     margin-bottom: 8vw;
-}
-#playersDiv {
-    margin-left: 7vw;
-}
+    border: 0;
+    font-size: 2vw;
+    margin-top: 0;
+    padding-top: 0;
+  }
+  #dealerTotal {
+    margin-bottom: .5vw;
+    border: 0; 
+    font-size: 2vw;
+    margin-top: 0.5vw;
+    padding-top: 0vw;
+    
+  }

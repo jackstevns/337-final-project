@@ -125,7 +125,6 @@ a {
     font-size: 1.5vw;
 }
 h2 {
-    padding-top: 7vw;
     text-align: center;
 }
 table {
@@ -148,15 +147,20 @@ tr, td {
 }
 #joinGameButton {
     position: absolute;
-    left: 30vw;
-    font-size: 1vw;
-    width: 8vw;
-    height: 2vw;
-    margin-bottom: 10vw;
-    margin-top: 1vw;
+    left: 27vw;
+    font-size: 2vw;
+    width: 15vw;
+    height: 4vw;
+    margin-bottom: 0vw;
+    margin-top: 7vw;
 }
 #exitButton {
     margin-left: 1vw;
     margin-top: 1vw;
     padding: 0.5vw;
+}
+#codeDisplay {
+    margin-top: 10vw;
+    font-size: 2vw;
+    text-align: center;
 }

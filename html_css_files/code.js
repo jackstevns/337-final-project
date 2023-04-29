@@ -192,7 +192,7 @@ function getUser() {
       }
       usernamePara = document.getElementById("usernamePara");
       if (usernamePara) {
-      usernamePara.innerText = text.username;
+        usernamePara.innerText = text.username;
       }
       bal = document.getElementById("balancePara");
       if (bal) {
@@ -214,7 +214,11 @@ function getUser() {
       if (Ties) {
         Ties.innerText = "Ties: " + text.Ties;
       }
-      
+      unWaiting = document.getElementById("usernameWaiting");
+      if (unWaiting) {
+        unWaiting.innerText = text.username;
+      }
+
 
     })
 }
@@ -481,7 +485,6 @@ function stay() {
   }
 }
 
-
 function showCards(message) {
   currentTotal = 0;
   fetch('/get/dealer/')
@@ -542,4 +545,155 @@ function joinRoom() {
     window.location.href = 'waitingCustom.html'
   }
 
+}
+
+function randomWaiting() {
+  getUser();
+  setInterval(sillyLittleAnimation, 1000);
+  randomGame();
+
+}
+
+function sillyLittleAnimation() {
+  x = document.getElementById("waitingLine").innerText;
+  if (x == "Waiting for players") {
+    document.getElementById("waitingLine").innerText = "Waiting for players."
+  }
+  else if (x == "Waiting for players.") {
+    document.getElementById("waitingLine").innerText = "Waiting for players.."
+  }
+  else if (x == "Waiting for players..") {
+    document.getElementById("waitingLine").innerText = "Waiting for players..."
+  }
+  else if (x == "Waiting for players...") {
+    document.getElementById("waitingLine").innerText = "Waiting for players"
+  }
+}
+
+function randomGame() {
+  fetch('/get/user')
+    .then((results) => {
+      //console.log("yes")
+      return results.json();
+    })
+    .then((user) => {
+      let url = '/new/random/game';
+      let data = { username: user.username };
+      let p = fetch(url, {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" }
+      });
+      p.then((data) => {
+        return data.text();
+      }).then((text) => {
+        if (text == "Added") {
+          alert(text)
+        } else if (text == "Created") {
+          alert(text);
+        }
+        setInterval(updateWaiting, 3000)
+      });
+    })
+}
+
+function updateWaiting() {
+  fetch('/waiting/players/').then((result) => {
+    return result.json()
+  }).then((results) => {
+    if (results[0]) {
+      console.log(results)
+      players = results[0].Players;
+      fetch('/get/user')
+        .then((results) => {
+          //console.log("yes")
+          return results.json();
+        })
+        .then((user) => {
+          if (players.length == 1) {
+            console.log('in 1')
+            return false;
+          }
+          if (players.length == 2) {
+            console.log('in 2')
+            if (players[0] == user.username) {
+              document.getElementById("p2").innerText = players[1]
+            } else {
+              document.getElementById("p2").innerText = players[0]
+            }
+            return false;
+          }
+          if (players.length == 3) {
+            console.log('in 3')
+            if (players[0] == user.username) {
+              document.getElementById("p2").innerText = players[1]
+              document.getElementById("p3").innerText = players[2]
+
+            } else if (players[1] == user.username) {
+              document.getElementById("p2").innerText = players[0]
+              document.getElementById("p3").innerText = players[2]
+            } else if (players[2] == user.username) {
+              document.getElementById("p2").innerText = players[0]
+              document.getElementById("p3").innerText = players[1]
+            }
+            return true;
+          }
+        }).then((bool) => {
+          console.log(bool)
+          if (bool) {
+            canGameStart();
+          }
+          else {
+            return
+          }
+        })
+    }
+  })
+}
+
+function canGameStart() {
+  console.log('checking game ready')
+  fetch('/is/game/ready/').then((results) => {
+    console.log(results)
+    return results.text();
+  }).then((text) => {
+    if (text == "true") {
+      console.log('game is starting')
+      alert("Your game is about to begin.")
+      window.location.href = './multiGame.html'
+    }
+  })
+}
+
+function createWaiting() {
+  getUser();
+  setInterval(sillyLittleAnimation, 1000);
+  codeGame();
+}
+
+function codeGame() {
+  fetch('/get/user')
+    .then((results) => {
+      //console.log("yes")
+      return results.json();
+    })
+    .then((user) => {
+      let url = '/new/code/game';
+      let data = { username: user.username };
+      let p = fetch(url, {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" }
+      });
+      p.then((data) => {
+        return data.text();
+      }).then((text) => {
+        if (text.length == 6) {
+          document.getElementById("codeDisplay").innerText = text;
+          alert('You successfully created a waiting room. Share the code below to have your friends join!')
+          
+        }
+        setInterval(updateWaiting, 3000)
+      });
+    })
 }

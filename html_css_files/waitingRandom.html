@@ -17,7 +17,7 @@
         <script src = "code.js"></script>
     </head>
 
-    <body onload="getUser()">
+    <body onload="randomWaiting()">
         <div id="topBar">
             <h3>BlackJack</h3>
             <h1>Random Multi-Player Waiting Room</h1>
@@ -43,14 +43,13 @@
         </div>
         <div id="rightNav">
             <button id="exitButton" type="submit" onclick="exit()">Exit Waiting Room</button>
-            <h2>Waiting for players...</h2>
+            <h2 id="waitingLine">Waiting for players...</h2>
             <table>
                 <tr>
-                    <td>[username]</td>
+                    <td id="usernameWaiting"></td>
                 </tr>
-                <tr><td></td></tr>
-                <tr><td></td></tr>
-                <tr><td></td></tr>
+                <tr><td id="p2"></td></tr>
+                <tr><td id="p3"></td></tr>
             </table>
         </div>
     </body>
