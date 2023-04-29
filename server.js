@@ -766,3 +766,22 @@ app.get('/is/game/ready/', (req, res) => {
 console.log('deleting games')
 Game.find({}).deleteMany().exec().then(() => {
 })
+
+app.post('/enter/code/room', (req, res) => {
+  let un = req.body.username;
+  let code = req.body.code;
+
+  Game.find({Code: code}).exec().then((results) => {
+    if (results.length == 1) {
+      Game.updateOne(
+        {Code: code},
+        {$push: {Players: un}}
+      ).then(() => {
+        res.end("Success")
+      })
+    }
+    else {
+      res.end("Invalid Code")
+    }
+  }) 
+})

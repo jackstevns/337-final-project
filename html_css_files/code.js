@@ -539,19 +539,49 @@ function createRoom() {
 }
 
 function joinRoom() {
-  code = document.getElementById('code');
-  if (code.value) {
+  thisCode = document.getElementById('code').value;
+  if (thisCode != "") {
+    fetch('/get/user')
+    .then((results) => {
+      //console.log("yes")
+      return results.json();
+    })
+    .then((user) => {
+      let url = '/enter/code/room';
+      let data = { username: user.username, code: thisCode };
+      let p = fetch(url, {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" }
+      });
+      p.then((data) => {
+        return data.text();
+      }).then((text) => {
+        if (text == "Success") {
+          alert(text)
+          window.location.href = 'waitingCustomJoined.html'
+          document.getElementById("enterGameButton").disabled = true;
+        } else if (text == "Invalid Code") {
+          alert(text);
+        }
+        setInterval(updateWaiting, 3000)
+      });
+    })
     // and if code exists
-    window.location.href = 'waitingCustom.html'
   }
 
+}
+
+function joinedByCode() {
+  getUser();
+  setInterval(sillyLittleAnimation, 1000);
+  setInterval(updateWaiting, 3000)
 }
 
 function randomWaiting() {
   getUser();
   setInterval(sillyLittleAnimation, 1000);
   randomGame();
-
 }
 
 function sillyLittleAnimation() {
@@ -691,7 +721,7 @@ function codeGame() {
         if (text.length == 6) {
           document.getElementById("codeDisplay").innerText = text;
           alert('You successfully created a waiting room. Share the code below to have your friends join!')
-          
+
         }
         setInterval(updateWaiting, 3000)
       });
