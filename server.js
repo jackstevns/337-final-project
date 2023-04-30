@@ -17,24 +17,17 @@ const cookieParser = require("cookie-parser")
 const { disconnect } = require('process');
 const io = new Server(server);
 
-
-server.listen(80, () => {
-  console.log("Sever running....")
-})
-
-
-
-
-
 app.use(cookieParser())
 //app.use('/app/*', authenticate);
-app.use(express.static(path.join(__dirname,'html_css_files')))
+app.use(express.static(path.join(__dirname,'html_css_files')));
 var tables = []; 
 const suits = ['hearts', 'diams', 'clubs', 'spades'];
 const ranks = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A'];
 
 
-
+app.get('/', function (req, res) {
+  res.sendFile(__dirname + '/index.html')
+})
 
 
 //app.use(parser.urlencoded({ extended: true }));

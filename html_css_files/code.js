@@ -1,7 +1,8 @@
 
 // Connect to server
+io = require('socket.io-client')
 
-var socket = io();
+const socket = io('http://localhost:80');
 
 var username
 var roomid
