@@ -19,9 +19,47 @@ const app = express();
 const server = require('http').createServer(app)
 const io = require('socket.io')(server, {cors: {origin: "*"}});
 
-io.on("connection", (socket) => {
-  console.log("User Connected")
-})
+
+
+// io.use((socket, next) => {
+//   const username = socket.handshake.auth.username;
+//   if (!username) {
+//     return next(new Error("invalid username"));
+//   }
+//   socket.username = username;
+//   next();
+// });
+
+// io.on("connection", (socket) => {
+//   console.log("User Connected ")
+//   const users = [];
+//   for (let [id, socket] of io.of("/").sockets) {
+//     users.push({
+//       userID: id,
+//       username: socket.username,
+//     });
+//   }
+//   console.log(users)
+//   //socket.emit("users", users);
+//   socket.on("checkwaiting", (code) => {
+//     Game.find({Code: code}).exec().then((results) => {
+//       if (results.length == 1) {
+//         Game.updateOne(
+//           {Code: code},
+//           {$push: {Players: socket.username}}
+//         ).then(() => {
+//           socket.join(code)
+//           console.log(socket.rooms)
+//           socket.emit("redirect",'waitingCustomJoined.html')
+//         })
+//       }
+//       else {
+//         socket.emit("incorrectjoinCode")
+//       }
+
+//   })
+// })
+// })
 const connection_string = 'mongodb://127.0.0.1:27017/blackjack';
 
 mongoose.connect(connection_string, { useNewUrlParser: true });
