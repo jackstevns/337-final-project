@@ -1,12 +1,11 @@
 
 // Connect to server
-io = require('socket.io-client')
 
-const socket = io('http://localhost:80');
+var socket = io();
 
 var username
 var roomid
-var bidamt
+var bidamt = 0 
 var type
 
 const el = document.getElementById('login')
