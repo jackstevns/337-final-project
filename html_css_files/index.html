@@ -15,6 +15,7 @@
         <meta charset="utf-8">
         <link rel="stylesheet" type="text/css" href="./indexStyle.css">
         <script src = "code.js" ></script>
+        <script src = "https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
     </head>
 
     <body>
@@ -41,10 +42,9 @@
 
             <p id="errorMsg"></p>
         </div>
-        <script src="bower_components/socket.io-client/socket.io.js"></script>
-
         <script>
-            var socket = io();
-          </script>
+          const socket = io("http://localhost:80")  
+          socket.on('connection')
+        </script>
     </body>
 </html>

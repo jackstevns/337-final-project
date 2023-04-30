@@ -10,12 +10,12 @@ request are sent to.
 const mongoose = require('mongoose');
 const express = require('express')
 const app = require('express')();
-const http = require('http');
-const socket = require('socket.io');
+const server = require('http').createServer(app);
+const socket = require('socket.io')(server, {cors: {origin: "*"}});
 const path = require('path');
 const cookieParser = require("cookie-parser")
 const { disconnect } = require('process');
-const io = new Server(server);
+
 
 
 server.listen(80, () => {
