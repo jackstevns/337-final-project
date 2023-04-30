@@ -1,3 +1,4 @@
+
 gameInSession = false;
 curBet = 0;
 document.getElementById("stayButton")

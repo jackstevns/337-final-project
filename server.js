@@ -15,7 +15,13 @@ const cookieParser = require('cookie-parser');
 const multer = require('multer');
 const path = require('path');
 const { fail } = require('assert');
+const app = express();
+const server = require('http').createServer(app)
+const io = require('socket.io')(server, {cors: {origin: "*"}});
 
+io.connect("connection", socket => {
+  console.log("User Connected")
+})
 const connection_string = 'mongodb://127.0.0.1:27017/blackjack';
 
 mongoose.connect(connection_string, { useNewUrlParser: true });
@@ -115,7 +121,7 @@ function authenticate(req, res, next) {
 }
 
 
-const app = express();
+
 app.use(cookieParser())
 app.use('/app/*', authenticate);
 
