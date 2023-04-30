@@ -19,7 +19,7 @@ const app = express();
 const server = require('http').createServer(app)
 const io = require('socket.io')(server, {cors: {origin: "*"}});
 
-io.connect("connection", socket => {
+io.on("connection", socket => {
   console.log("User Connected")
 })
 const connection_string = 'mongodb://127.0.0.1:27017/blackjack';
