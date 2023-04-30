@@ -511,7 +511,7 @@ app.post('/add/user/', (req, res) => {
     });
 });
 const port = 80;
-app.listen(port, () => {
+server.listen(port, () => {
   console.log('server has started');
 });
 
