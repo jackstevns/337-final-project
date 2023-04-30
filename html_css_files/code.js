@@ -1,11 +1,10 @@
 
 // Connect to server
-
-var socket = io();
+const socket = io.connect('http://localhost:8080');
 
 var username
 var roomid
-var bidamt
+var bidamt = 0 
 var type
 
 const el = document.getElementById('login')
