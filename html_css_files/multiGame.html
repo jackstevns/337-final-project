@@ -16,6 +16,7 @@
         <link rel="stylesheet" type="text/css" href="./multiGameStyle.css">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <script src = "code.js"></script>
+        <script src = "https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
     </head>
 
     <body onload="getMultiuser()">
@@ -69,5 +70,9 @@
             <li><button class='bottomButtons' id="exitButton" onclick="exit();">Exit Game Room</button></li>
              </ul>
         </div>
+        <script>
+            var socket = io({ autoConnect: false });
+            console.log(document.cookie)
+        </script>
     </body>
 </html>

@@ -673,6 +673,12 @@ function codeGame() {
     })
 }
 
+function onUsernameSelection(username) {
+  console.log(username)
+  this.usernameAlreadySelected = true;
+  socket.auth = { username };
+  socket.connect();
+}
 
 function getMultiuser(){
   url = "/get/multiplayer/"
@@ -686,6 +692,12 @@ function getMultiuser(){
     player2.innerText = results[0].Players[1]
     let player3 = document.getElementById("player3Details")
     player3.innerText = results[0].Players[2]
+    fetch('/get/user/').then((response)=>{
+      return response.json()
+    }).then((results) =>{
+      console.log(results.username)
+      onUsernameSelection(results.username)
+    })
   }).catch((err) =>{
     console.log(err)
   })
@@ -694,20 +706,21 @@ function getMultiuser(){
 
 
 function startmultiplayer(){
-  url = "/get/multiplayer/"
-  fetch(url).then((response) =>{
-    return response.json()
-  }).then((results) => {
-    gameInSession = true;
-    // deal cards NEEDED HERE 
-    console.log(results)
+  button.disabled = true;
+  socket.emit('button-start')
+//   url = "/get/multiplayer/"
+//   fetch(url).then((response) =>{
+//     return response.json()
+//   }).then((results) => {
+//     gameInSession = true;
+//     // deal cards NEEDED HERE 
+//     console.log(results)
+socket.on("player-one-turn", ()=>{
     let player1 = document.getElementById("player1Details")
     player1.innerText = results[0].Players[0]
     document.getElementById("startButton").disabled = true;
     document.getElementById("stayButtonp1").disabled = false;
-    document.getElementById("hitButtonp1").disabled = false;
-  }).catch((err) =>{
-    console.log(err)
+    document.getElementById("hitButtonp1").disabled = false
   })
 }
 
