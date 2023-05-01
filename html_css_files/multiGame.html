@@ -16,47 +16,35 @@
         <link rel="stylesheet" type="text/css" href="./multiGameStyle.css">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <script src = "code.js"></script>
-        <script src = "https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
     </head>
 
-    <body onload="getMultiuser()">
+    <body onload="multiGame()">
         <div id="topBar">
             <h3>BlackJack</h3>
-            <h1>Single-Player Game Room</h1>
+            <h1>Multi-Player Game Room</h1>
             <button id="signOutButton" type="submit" onclick="signOut()">SIGN OUT</button>
         </div>
         <div id="gameNav">    
             <div id="dealerDetails">Dealer</div>
             <div id="dealerTotal"></div>
-            <div class="box"><span id="dealerhand"> <img style="visibility: hidden;" class= "card"> </span>
-                <div class="other"><span id="lefthand"><img  class= "card"></span><span id="lefthand"><img  class= "card"></span></div>
-            </div>
-            <div id="buttons">
-            <span id = "player1">
-            <button class='bottomButtons' id="stayButtonp1" disabled="true" onclick="stayMultiplayer();">STAY</button> 
-            <button class='bottomButtons' id="hitButtonp1" disabled="true" onclick="hit();">HIT</button>
-            </span>
-            <span id = "player2">
-            <button class='bottomButtons' id="stayButtonp2" disabled="true" onclick="stayMultiplayer();">STAY</button> 
-            <button class='bottomButtons' id="hitButtonp2" disabled="true" onclick="hit();">HIT</button> 
-            </span>
-            <span id = "player3">
-            <button class='bottomButtons' id="stayButtonp3" disabled="true" onclick="stayMultiplayer();">STAY</button>
-            <button class='bottomButtons' id="hitButtonp3" disabled="true" onclick="hit();">HIT</button> 
-            </span>
-            </div>
-            <!-- <span class="other"><span id="currenthandp1"> <img style="visibility: hidden;" class = "card"> </span></div> 
-            <span class="other"><span id="currenthandp2"> <img style="visibility: hidden;" class = "card"> </span></div> 
-            <span class="other"><span id="currenthandp3"> <img style="visibility: hidden;" class = "card"> </span></div>  -->
+            <div class="box"><span id="dealerhand"> <img style="visibility: hidden;" class= "card"> </span></div>
+            
+            
+            <div class="box"><span id="dealerhand"> <img style="visibility: hidden;" class= "card"> </span></div>
             <div id="players">
-            <span id="player1Details"> You</span>
-            <!-- <div id="totalDetails"></div>
-            <div class="other"><span id="currenthand"> <img style="visibility: hidden;" class = "card"> </span></div>  -->
-            <span id="player2Details">Player2 </span>
-            <!-- <div id="totalDetails"></div>
-            <div class="other"><span id="currenthand"> <img style="visibility: hidden;" class = "card"> </span></div>  -->
-            <span id="player3Details">Player3 </span>
-            <!-- <div id="totalDetails"></div> -->
+                <div class="box">
+                    <span class="playerHands" id="1hand"> <img style="visibility: hidden;" class= "card"> </span>
+                    <span class="playerHands" id="2hand"> <img style="visibility: hidden;" class= "card"> </span>
+                    <span class="playerHands" id="3hand"> <img style="visibility: hidden;" class= "card"> </span></div>
+                <span id="player1Details"></span>
+                <!-- <div id="totalDetails"></div>
+                <div class="other"><span id="currenthand"> <img style="visibility: hidden;" class = "card"> </span></div>  -->
+                <span id="player2Details"></span>
+                <!-- <div id="totalDetails"></div>
+                <div class="other"><span id="currenthand"> <img style="visibility: hidden;" class = "card"> </span></div>  -->
+                <span id="player3Details"></span>
+                <!-- <div id="totalDetails"></div> -->
+            </div>
         </div>
         <!-- <div id = "box"><span id="currenthand"> <img id = "card" src="img/aceclubs.png" alt="My Image"> </span></div> -->
         
@@ -64,15 +52,11 @@
             <ul>
             <li id="balancePara"></li>
             <li><label for="betinput">Enter bet to play:</label><input class="input" type="Number" id="betinput" name="betamount" value="10"></li>
-            <li><button class='bottomButtons' id="startButton" onclick="startmultiplayer();">Start</button> </li>
+            <li><button class='bottomButtons' id="startButton" onclick="startMulti();">Start</button> </li>
             <li><button class='bottomButtons' id="stayButton" disabled="true" onclick="stay();">STAY</button> </li>
             <li><button class='bottomButtons' id="hitButton" disabled="true" onclick="hit();">HIT</button> </li>
             <li><button class='bottomButtons' id="exitButton" onclick="exit();">Exit Game Room</button></li>
              </ul>
         </div>
-        <script>
-            var socket = io({ autoConnect: false });
-            console.log(document.cookie)
-        </script>
     </body>
 </html>

@@ -17,49 +17,32 @@ const path = require('path');
 const { fail } = require('assert');
 const app = express();
 const server = require('http').createServer(app)
-const io = require('socket.io')(server, { cors: { origin: "*" } });
+const io = require('socket.io')(server, {cors: {origin: "http://localhost/multiGame.html"}});
 
+io.use((socket, next) => {
+  const username = socket.handshake.auth.username;
+  if (!username) {
+    return next(new Error("invalid username"));
+  }
+  socket.username = username;
+  next();
+});
 
+io.on("connection", (socket) => {
+  console.log("User Connected ")
+  const users = [];
+  for (let [id, socket] of io.of("/").sockets) {
+    users.push({
+      userID: id,
+      username: socket.username,
+    });
+  }
+  console.log(users)
 
-// io.use((socket, next) => {
-//   const username = socket.handshake.auth.username;
-//   if (!username) {
-//     return next(new Error("invalid username"));
-//   }
-//   socket.username = username;
-//   next();
-// });
+  socket.on('button-clicked', () => {
+    io.emit("player-one-turn");})
+  })
 
-// io.on("connection", (socket) => {
-//   console.log("User Connected ")
-//   const users = [];
-//   for (let [id, socket] of io.of("/").sockets) {
-//     users.push({
-//       userID: id,
-//       username: socket.username,
-//     });
-//   }
-//   console.log(users)
-//   //socket.emit("users", users);
-//   socket.on("checkwaiting", (code) => {
-//     Game.find({Code: code}).exec().then((results) => {
-//       if (results.length == 1) {
-//         Game.updateOne(
-//           {Code: code},
-//           {$push: {Players: socket.username}}
-//         ).then(() => {
-//           socket.join(code)
-//           console.log(socket.rooms)
-//           socket.emit("redirect",'waitingCustomJoined.html')
-//         })
-//       }
-//       else {
-//         socket.emit("incorrectjoinCode")
-//       }
-
-//   })
-// })
-// })
 const connection_string = 'mongodb://127.0.0.1:27017/blackjack';
 
 mongoose.connect(connection_string, { useNewUrlParser: true });
@@ -102,9 +85,7 @@ var GameSchema = new mongoose.Schema({
   Players: [String],
   Deck: Object,
   Turn: String,
-  Code: String,
-  Start: Number,
-  Hands: [String]
+  Code: String
 })
 var Game = mongoose.model('Game', GameSchema);
 //Game.find({}).deleteMany().exec();
@@ -740,8 +721,8 @@ app.post('/new/random/game/', (req, res) => {
     }
     else {
       var newGame = new Game({
-        Players: [un],
-        Turn: un
+        Turn: "Unknown",
+        Players: [un]
       });
       newGame.save().then(() => {
         res.end("Created")
@@ -752,15 +733,14 @@ app.post('/new/random/game/', (req, res) => {
 
 app.post('/new/code/game/', (req, res) => {
   console.log('creating coded game');
-
+  
   let un = req.body.username;
-  Game.find({ Player: un }).exec().then((result) => {
+  Game.find({Player: un}).exec().then((result) => {
     if (result.length == 0) {
       var code = makeCode()
       var newGame = new Game({
         Players: [un],
-        Code: code,
-        Turn: un
+        Code: code
       });
       newGame.save().then(() => {
         res.end(code)
@@ -774,7 +754,7 @@ function makeCode() {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let counter = 0;
   while (counter < 6) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
+    result += characters.charAt(Math.floor(Math.random() * 6));
     counter += 1;
   }
   return result;
@@ -814,19 +794,19 @@ app.get('/is/game/ready/', (req, res) => {
   })
 });
 
-console.log('deleting games')
-Game.find({}).deleteMany().exec().then(() => {
-})
+// console.log('deleting games')
+// Game.find({}).deleteMany().exec().then(() => {
+// })
 
 app.post('/enter/code/room', (req, res) => {
   let un = req.body.username;
   let code = req.body.code;
 
-  Game.find({ Code: code }).exec().then((results) => {
+  Game.find({Code: code}).exec().then((results) => {
     if (results.length == 1) {
       Game.updateOne(
-        { Code: code },
-        { $push: { Players: un } }
+        {Code: code},
+        {$push: {Players: un}}
       ).then(() => {
         res.end("Success")
       })
@@ -834,172 +814,59 @@ app.post('/enter/code/room', (req, res) => {
     else {
       res.end("Invalid Code")
     }
-  })
+  }) 
 })
 
-app.post('/player/ready/', (req, res) => {
-  let n = req.cookies.login.username;
-  Game.find({ Players: n }).exec().then((results) => {
-    thisId = results[0]._id;
-    thisCount = results[0].Start;
-    thisString = results[0].Players.join("");
+app.get("/get/multiplayer/", (req, res) => {
+  let un = req.cookies.login.username;
+  //console.log(un)
+  Game.find({ Players: { $in: [ un ] } }).exec().then((results) => {
+    let player = (results[0].Players[0])
     Game.updateOne(
-      { _id: thisId },
-      { $inc: { Start: 1 } }
-    ).then(() => {
-      if (thisCount == 2) {
-        multiGameDealing(thisString, results[0], res);
-      }
-      res.end("Okay");
-      
-    })
-  })
+      {Code : results[0].Code},
+      {$set:{Turn:player}})
+      .catch((err) => {
+        console.log(err)
+      })
+    res.end(JSON.stringify(results))
+}).catch((err) =>{
+  console.log(err)
+})
 })
 
-function multiGameDealing(thisString, gameObj, res) {
-  Deck.find({ Game: thisString }).exec().then((deckRes) => {
-    if (deckRes.length[0]) {
-      return;
-    }
-    else {
-      var ourDealer = new User({
-        username: "Dealer" + thisString,
-        password: "Dealer" + thisString,
-        balance: 0,
-        roundsPlayed: 0,
-        Wins: 0,
-        Losses: 0,
-        Ties: 0,
-        Total: 0,
-        player: "Dealer" + thisString
-      });
-    
-      ourDealer.save().then(() => {
-        newCards2(thisString, gameObj);
-        return;
+app.get("/update/turn/", (req, res) => {
+  let un = req.cookies.login.username;
+  console.log(un)
+  Game.find({ Players: { $in: [ un ] } }).exec().then((results) => {
+    console.log(results)
+    playerlist = results[0].Players
+    let lastplayed = results[0].Turn
+    var newplayer = ''
+    console.log("lastplayed"+lastplayed)
+    console.log("lastplayed"+lastplayed)
+    for( var i = 0; i < playerlist.length; i++)
+      if (playerlist[i] == lastplayed){
+        if(playerlist[i+1] != undefined){
+          console.log("newplayer:"+ playerlist[i+1])
+          newplayer = playerlist[i+1]
+          break;
+        }else{
+          console.log("newplayer:"+ playerlist[i+1])
+          newplayer = "Dealer"
+          break;
+        }
+        
+      }
+    console.log(newplayer)
+    Game.updateOne(
+      {Code : results[0].Code},
+      {$set:{Turn:newplayer}})
+      .catch((err) => {
+        console.log(err)
       })
-      
-    }
-  })
-}
-
-app.get('/are/cards/dealt/', (req, res) => {
-  let n = req.cookies.login.username;
-  Game.find({ Players: n }).exec().then((results) => {
-    console.log(results[0])
-    res.end(JSON.stringify(results[0]))
-  })
+    res.end(JSON.stringify(results))
+}).catch((err) =>{
+  console.log(err)
+})
 })
 
-function newCards2(currentUser, gameObject) {
-  let p = Card.find({}).deleteMany().exec().then((result) => {
-    //console.log(result)
-    const lineReader = require('line-reader');
-    lineReader.eachLine('./cards.txt', function (line, last) {
-      if (line[0] != '#') {
-        var params = line.split(',');
-        var newCard = new Card({
-          Suit: params[0],
-          Name: params[1],
-          Value: Number(params[3]),
-          Player: "In Deck",
-          PlaceInDeck: Number(params[4])
-        });
-
-        newCard.save()
-      }
-      if (last) {
-        Card.find({}).exec().then((cards) => {
-          //console.log(cards)
-          makeDeck2(currentUser, gameObject);
-        })
-      }
-    });
-  })
-}
-
-function makeDeck2(curUser, gameObject) {
-  Deck.find({ Game: curUser }).deleteMany().exec().then(() => {
-    deckArr = shuffleDeck();
-    var newDeck = new Deck({
-      Game: curUser,
-      Cards: deckArr
-    })
-
-    newDeck.save().then(() => {
-      dealingLogic(curUser, gameObject)
-      //deal3(curUser, curUser, gameObject, res)
-    })
-  })
-}
-
-function dealingLogic(gameName, gameObject) {
-  
-  players = gameObject.Players;
-  Game.find({Players: players[0]}).exec().then((ans) => {
-    deal3(players[0], gameName, players, 1, ans[0]._id)
-  })
-  
-}
-
-function deal3(currentUser, gameHolder, players, dealtNum, gameID) {
-  console.log('dealing ' + currentUser)
-  User.find({ username: currentUser }).exec().then((userRes) => {
-    us = userRes[0]
-    Deck.find({ Game: gameHolder }).exec().then((deckRes) => {
-      Card.find({ PlaceInDeck: deckRes[0].Cards[0] }).exec().then((cardRes) => {
-        cardFileName = (cardRes[0].Suit + cardRes[0].Name).toLowerCase()
-        var gameString = currentUser + ' ' + cardFileName;
-        //console.log("pushing" + gameString)
-        if (us.Total >= 11 && cardRes[0].Name == 'Ace') {
-          var card = { "Suit": cardRes[0].Suit, "Value": 1, "Name": cardRes[0].Name }
-          var cardVal = 1;
-        }
-        else {
-          var card = { "Suit": cardRes[0].Suit, "Value": cardRes[0].Value, "Name": cardRes[0].Name }
-          var cardVal = card.Value
-        }
-        console.log(card)
-        User.updateOne(
-          { username: currentUser },
-          {
-            $push: { CurrentHand: card },
-            $inc: { Total: cardVal }
-          }
-        ).then((saveRes) => {
-          // console.log(saveRes)
-          Deck.updateOne(
-            { Game: gameHolder },
-            { $pop: { Cards: -1 } }
-          ).then(() => {
-            console.log("pushing" + gameString)
-            Game.updateOne(
-              { _id: gameID },
-              { $push: { Hands: gameString } }
-            ).then(() => {
-            Deck.find({ Game: gameHolder }).exec().then((deckRes2) => {
-              //console.log(deckRes2[0].Cards.length)
-            }).then(() => {
-              if (dealtNum == 1 || dealtNum == 5) {
-                deal3(players[1], gameHolder, players, dealtNum + 1, gameID)
-              }
-              else if (dealtNum == 2 || dealtNum == 6) {
-                deal3(players[2], gameHolder, players, dealtNum + 1, gameID)
-              }
-              else if (dealtNum == 3 || dealtNum == 7) {
-                deal3("Dealer" + gameHolder, gameHolder, players, dealtNum + 1, gameID)
-              }
-              else if (dealtNum == 4) {
-                deal3(players[0], gameHolder, players, dealtNum + 1, gameID)
-              }
-              else if (dealtNum == 8) {
-                return;
-              }
-            })
-          })
-          })
-        })
-      })
-    })
-  })
-}

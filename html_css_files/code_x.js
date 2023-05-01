@@ -317,11 +317,40 @@ function updatePlayer(outcome) {
 
 
 DealercurrentTotal = 0;
-function stay() {
+function stayMultiplayer() {
+  url = "/get/multiplayer/"
+  fetch(url)
+  .then((response) =>{
+  return response.json()})
+  .then((results) => {
+    
+    let player = results[0].Players
+    let turn  = results[0].Turn;
+    console.log("CLIENTLASTTURN: "+turn)
+    console.log(player)
+    if (player[0] == turn){
+      document.getElementById("stayButtonp1").disabled = true;
+      document.getElementById("hitButtonp1").disabled = true;
+      document.getElementById("stayButtonp2").disabled = false;
+      document.getElementById("hitButtonp2").disabled = false;
+    }
+    if (player[1] == turn){
+      document.getElementById("stayButtonp2").disabled = true;
+      document.getElementById("hitButtonp2").disabled = true;
+      document.getElementById("stayButtonp3").disabled = false;
+      document.getElementById("hitButtonp3").disabled = false;
+    }
+    if (player[2] == turn){
+      document.getElementById("stayButtonp2").disabled = true;
+      document.getElementById("hitButtonp2").disabled = true;
+      document.getElementById("stayButtonp3").disabled = false;
+      document.getElementById("hitButtonp3").disabled = false;
+    }
+    if ("Dealer" == turn){
+      document.getElementById("stayButtonp3").disabled = true;
+      document.getElementById("hitButtonp3").disabled = true;
   if (gameInSession) {
     showCards("");
-    document.getElementById("stayButton").disabled = true;
-    document.getElementById("hitButton").disabled = true;
     keepGoing = true;
     currentTotal = 0;
     fetch('/get/dealer/')
@@ -390,6 +419,14 @@ function stay() {
       })
   }
 }
+}).then((results) =>{
+  fetch("/update/turn/").then((response) =>{
+    return response.json()
+  }).then((results) => {
+    console.log(results)
+  })
+})}
+
 
 function showCards(message) {
   currentTotal = 0;
@@ -448,31 +485,31 @@ function joinRoom() {
   thisCode = document.getElementById('code').value;
   if (thisCode != "") {
     fetch('/get/user')
-      .then((results) => {
-        //console.log("yes")
-        return results.json();
-      })
-      .then((user) => {
-        let url = '/enter/code/room';
-        let data = { username: user.username, code: thisCode };
-        let p = fetch(url, {
-          method: 'POST',
-          body: JSON.stringify(data),
-          headers: { "Content-Type": "application/json" }
-        });
-        p.then((data) => {
-          return data.text();
-        }).then((text) => {
-          if (text == "Success") {
-            alert(text)
-            window.location.href = 'waitingCustomJoined.html'
-            document.getElementById("enterGameButton").disabled = true;
-          } else if (text == "Invalid Code") {
-            alert(text);
-          }
-          setInterval(updateWaiting, 3000)
-        });
-      })
+    .then((results) => {
+      //console.log("yes")
+      return results.json();
+    })
+    .then((user) => {
+      let url = '/enter/code/room';
+      let data = { username: user.username, code: thisCode };
+      let p = fetch(url, {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" }
+      });
+      p.then((data) => {
+        return data.text();
+      }).then((text) => {
+        if (text == "Success") {
+          alert(text)
+          window.location.href = 'waitingCustomJoined.html'
+          document.getElementById("enterGameButton").disabled = true;
+        } else if (text == "Invalid Code") {
+          alert(text);
+        }
+        setInterval(updateWaiting, 3000)
+      });
+    })
     // and if code exists
   }
 
@@ -553,19 +590,19 @@ function updateWaiting() {
           if (players.length == 2) {
             console.log('in 2')
             // if (players[0] == user.username) {
-            document.getElementById("usernameWaiting").innerText = players[0]
-            document.getElementById("p2").innerText = players[1]
+              document.getElementById("usernameWaiting").innerText = players[0]
+              document.getElementById("p2").innerText = players[1]
             // } else {
             //   document.getElementById("p2").innerText = players[0]
-            //}
+             //}
             return false;
           }
           if (players.length == 3) {
             console.log('in 3')
             // if (players[0] == user.username) {
-            document.getElementById("usernameWaiting").innerText = players[0]
-            document.getElementById("p2").innerText = players[1]
-            document.getElementById("p3").innerText = players[2]
+              document.getElementById("usernameWaiting").innerText = players[0]
+              document.getElementById("p2").innerText = players[1]
+              document.getElementById("p3").innerText = players[2]
 
             // } else if (players[1] == user.username) {
             //   document.getElementById("p2").innerText = players[0]
@@ -636,118 +673,129 @@ function codeGame() {
     })
 }
 
-function multiGame() {
-  getUser();
-  setNamesInGameRoom();
+function onUsernameSelection(username) {
+  console.log(username)
+  this.usernameAlreadySelected = true;
+  socket.auth = { username };
+  socket.connect();
 }
 
-function setNamesInGameRoom() {
-  fetch('/waiting/players/').then((result) => {
-    return result.json()
+function getMultiuser(){
+  url = "/get/multiplayer/"
+  fetch(url).then((response) =>{
+    return response.json()
   }).then((results) => {
-    players = results[0].Players;
-    fetch('/get/user')
-      .then((result) => {
-        return result.json();
-      })
-      .then((user) => {
-        console.log(user)
-        console.log(players)
-        if (players[0] == user.username) {
-          document.getElementById("player3Details").innerText = "You";
-          document.getElementById("player2Details").innerText = players[1];
-          document.getElementById("player1Details").innerText = players[2];
-        }
-        else if (players[1] == user.username) {
-          document.getElementById("player3Details").innerText = players[0];
-          document.getElementById("player2Details").innerText = "You";
-          document.getElementById("player1Details").innerText = players[2];
-        }
-        else if (players[2] == user.username) {
-          document.getElementById("player3Details").innerText = players[0];
-          document.getElementById("player2Details").innerText = players[1];
-          document.getElementById("player1Details").innerText = "You";
-        }
-      })
+    console.log(results)
+    let player1 = document.getElementById("player1Details")
+    player1.innerText = results[0].Players[0]
+    let player2 = document.getElementById("player2Details")
+    player2.innerText = results[0].Players[1]
+    let player3 = document.getElementById("player3Details")
+    player3.innerText = results[0].Players[2]
+    fetch('/get/user/').then((response)=>{
+      return response.json()
+    }).then((results) =>{
+      console.log(results.username)
+      onUsernameSelection(results.username)
+    })
+  }).catch((err) =>{
+    console.log(err)
   })
 }
 
-function startMulti() {
-  curBet = document.getElementById("betinput").value;
-  fetch('/get/user').then((results) => {
-    return results.json();
-  }).then((text) => {
-    return text.balance
-  }).then((curBal) => {
-    if (curBet == "" || curBet <= 0) {
-      alert("Invalid bet amount.")
-    }
-    else if (curBet > curBal) {
-      alert('Your balance is too low for that bet.')
-    }
-    else {
-      document.getElementById("startButton").disabled = true;
-      document.getElementById("betinput").disabled = true;
-      gameInSession = true;
-      fetch('/player/ready/', {
-        method: 'POST',
-        headers: { "Content-Type": "application/json" }
+
+
+function startmultiplayer(){
+  button.disabled = true;
+  socket.emit('button-start')
+//   url = "/get/multiplayer/"
+//   fetch(url).then((response) =>{
+//     return response.json()
+//   }).then((results) => {
+//     gameInSession = true;
+//     // deal cards NEEDED HERE 
+//     console.log(results)
+socket.on("player-one-turn", ()=>{
+    let player1 = document.getElementById("player1Details")
+    player1.innerText = results[0].Players[0]
+    document.getElementById("startButton").disabled = true;
+    document.getElementById("stayButtonp1").disabled = false;
+    document.getElementById("hitButtonp1").disabled = false
+  })
+}
+
+
+
+function stay() {
+  if (gameInSession) {
+    showCards("");
+    document.getElementById("stayButton").disabled = true;
+    document.getElementById("hitButton").disabled = true;
+    keepGoing = true;
+    currentTotal = 0;
+    fetch('/get/dealer/')
+      .then((results) => {
+        return results.text();
       })
-      .then((data) => {
-        return data.text();
-      }).then((text) => {
-        console.log(text)
-        if (text == "Okay") {
-          interval = setInterval(checkGameStart, 3000)
-        }
-      });
-    }
-  })
-}
+      .then((text) => {
+        setTimeout(() => {
+          fetch('/turn/dealer/')
+            .then((response) => {
+              return response.text()
+            })
+            .then((doctext) => {
+              var text = doctext;
+              fetch('/get/dealer/').then((results) => {
+                return results.json();
+              }).then((dealerRes) => {
+                document.getElementById("dealerTotal").innerHTML = "Total: " + dealerRes.Total;
+                console.log(text);
+                if (text == "BUST") {
+                  gameInSession = false;
+                  keepGoing = false;
+                  showCards("Dealer Busted. You Won.")
+                  updatePlayer("won")
+                  //alert("Dealer Busted. You Win")
 
-function checkGameStart() {
-  console.log('here')
-  fetch('/are/cards/dealt').then((results) => {
-    return results.json();
-  }).then((result) => {
-    console.log(result)
-    if (result.Hands.length == 8) {
-      clearInterval(interval)
-      showEveryCard(result)
-    }
-  })
-}
+                }
+                if (text == "DEALER") {
+                  gameInSession = false;
+                  keepGoing = false;
+                  showCards("Dealer won.")
+                  updatePlayer("lost")
+                  //alert("Dealer Won.")
 
-function showEveryCard(game) {
-  players = game.Players;
-  cards = game.Hands;
-  turn = game.Turn;
-  document.getElementById("dealerhand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/cardback.jpeg">'
-  fetch('/get/user').then((userRes) => {
-    return userRes.json()
-  }).then((user) => {
-    if (players[0] == user.username) {
-      document.getElementById("3hand").innerHTML = '<img class = "card" src="img/' + cards[0].split(" ")[1] + '.png"><img class = "card" src="img/' + cards[4].split(" ")[1] + '.png">';
-      document.getElementById("2hand").innerHTML = '<img class = "card" src="img/' + cards[1].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
-      document.getElementById("1hand").innerHTML = '<img class = "card" src="img/' + cards[2].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
-      if (turn == user.username) {
-        document.getElementById("stayButton").disabled = false;
-        document.getElementById("hitButton").disabled = false;
-      }
-    }
-    else if (players[1] == user.username) {
-      document.getElementById("3hand").innerHTML = '<img class = "card" src="img/' + cards[0].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
-      document.getElementById("2hand").innerHTML = '<img class = "card" src="img/' + cards[1].split(" ")[1] + '.png"><img class = "card" src="img/' + cards[5].split(" ")[1] + '.png">';
-      document.getElementById("1hand").innerHTML = '<img class = "card" src="img/' + cards[2].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
-      return;
-    }
-    else if (players[2] == user.username) {
-      document.getElementById("3hand").innerHTML = '<img class = "card" src="img/' + cards[0].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
-      document.getElementById("2hand").innerHTML = '<img class = "card" src="img/' + cards[1].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
-      document.getElementById("1hand").innerHTML = '<img class = "card" src="img/' + cards[2].split(" ")[1] + '.png"><img class = "card" src="img/' + cards[6].split(" ")[1] + '.png">';
-      return;
-    }
-  }).then(() => {
-    
-  })
+                }
+                if (text == "PLAYER") {
+                  gameInSession = false;
+                  keepGoing = false;
+                  showCards("You won.")
+                  updatePlayer("won")
+                  //alert("You win")
+
+                }
+                if (text == "TIE") {
+                  gameInSession = false;
+                  keepGoing = false;
+                  showCards("Tied.")
+                  updatePlayer("tied")
+                  //alert("Tied.")
+
+                }
+                if (text == "true") {
+                  showCards("")
+                  gameInSession = true;
+                  keepGoing = true;
+                }
+                return keepGoing;
+              }).then((bool) => {
+                if (bool) {
+                  stay();
+                }
+              })
+            })
+
+        }, 1500)
+      })
+  }
 }
