@@ -552,26 +552,28 @@ function updateWaiting() {
           }
           if (players.length == 2) {
             console.log('in 2')
-            if (players[0] == user.username) {
+            // if (players[0] == user.username) {
+              document.getElementById("usernameWaiting").innerText = players[0]
               document.getElementById("p2").innerText = players[1]
-            } else {
-              document.getElementById("p2").innerText = players[0]
-            }
+            // } else {
+            //   document.getElementById("p2").innerText = players[0]
+             //}
             return false;
           }
           if (players.length == 3) {
             console.log('in 3')
-            if (players[0] == user.username) {
+            // if (players[0] == user.username) {
+              document.getElementById("usernameWaiting").innerText = players[0]
               document.getElementById("p2").innerText = players[1]
               document.getElementById("p3").innerText = players[2]
 
-            } else if (players[1] == user.username) {
-              document.getElementById("p2").innerText = players[0]
-              document.getElementById("p3").innerText = players[2]
-            } else if (players[2] == user.username) {
-              document.getElementById("p2").innerText = players[0]
-              document.getElementById("p3").innerText = players[1]
-            }
+            // } else if (players[1] == user.username) {
+            //   document.getElementById("p2").innerText = players[0]
+            //   document.getElementById("p3").innerText = players[2]
+            // } else if (players[2] == user.username) {
+            //   document.getElementById("p2").innerText = players[0]
+            //   document.getElementById("p3").innerText = players[1]
+            // }
             return true;
           }
         }).then((bool) => {

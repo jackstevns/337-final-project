@@ -87,7 +87,8 @@ var UserSchema = new mongoose.Schema({
   Losses: Number,
   Ties: Number,
   CurrentHand: [Object],
-  Total: Number
+  Total: Number,
+  player: String
 });
 var User = mongoose.model('User', UserSchema);
 
@@ -200,7 +201,8 @@ function resetDeck(currentUser, res) {
             Wins: 0,
             Losses: 0,
             Ties: 0,
-            Total: 0
+            Total: 0,
+            player: "Dealer"
           });
 
           ourDealer.save().then(() => {
@@ -730,6 +732,7 @@ app.post('/new/random/game/', (req, res) => {
         { _id: curID },
         { $push: { Players: un } }
       ).then(() => {
+
         res.end("Added")
       })
     }
