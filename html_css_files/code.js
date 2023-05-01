@@ -46,8 +46,7 @@ function login() {
       if (text == 'LOGIN') {
         window.location.href = '/home.html'
       } else {
-        let retval = document.getElementById("error")
-        retval.innerText = text;
+        alert(text)
       }
 
     });
@@ -730,10 +729,11 @@ function showEveryCard(game) {
       document.getElementById("3hand").innerHTML = '<img class = "card" src="img/' + cards[0].split(" ")[1] + '.png"><img class = "card" src="img/' + cards[4].split(" ")[1] + '.png">';
       document.getElementById("2hand").innerHTML = '<img class = "card" src="img/' + cards[1].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
       document.getElementById("1hand").innerHTML = '<img class = "card" src="img/' + cards[2].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
-      if (turn == user.username) {
-        document.getElementById("stayButton").disabled = false;
-        document.getElementById("hitButton").disabled = false;
-      }
+      // if (turn == user.username) {
+      //   document.getElementById("stayButton").disabled = false;
+      //   document.getElementById("hitButton").disabled = false;
+      // }
+      return;
     }
     else if (players[1] == user.username) {
       document.getElementById("3hand").innerHTML = '<img class = "card" src="img/' + cards[0].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
@@ -748,6 +748,6 @@ function showEveryCard(game) {
       return;
     }
   }).then(() => {
-    
+ 
   })
 }

@@ -18,6 +18,10 @@ const { fail } = require('assert');
 const app = express();
 const server = require('http').createServer(app)
 const io = require('socket.io')(server, { cors: { origin: "*" } });
+const crypto = require('crypto');
+const cm = require('./customsessions');
+
+cm.sessions.startCleanup();
 
 
 
@@ -80,7 +84,8 @@ var Card = mongoose.model('Card', CardSchema);
 // creates Schema for 
 var UserSchema = new mongoose.Schema({
   username: String,
-  password: String,
+  salt: Number,
+  hash: String,
   balance: Number,
   roundsPlayed: Number,
   Wins: Number,
@@ -149,11 +154,9 @@ setInterval(cleanupSeasons, 6000000)
 // if no cookie is found.
 function authenticate(req, res, next) {
   let c = req.cookies;
-
   if (c && c.login) {
-
-    let results = doesUserHaveSession(c.login.username, c.login.sid);
-    if (results) {
+    let result = cm.sessions.doesUserHaveSession(c.login.username, c.login.sid);
+    if (result) {
       next();
       return;
     }
@@ -172,6 +175,17 @@ app.use(express.static('html_css_files'))
 app.use(parser.urlencoded({ extended: true }));
 app.use(express.json())
 const upload = multer({ dest: __dirname + '/public_html/app' });
+
+
+app.use('*', (req, res, next) => {
+  let c = req.cookies;
+  if (c && c.login) {
+    if (cm.sessions.doesUserHaveSession(c.login.username, c.login.sid)) {
+      cm.sessions.addOrUpdateSession(c.login.username);
+    }
+  }
+  next();
+});
 
 // (GET) Changes the id status from SALE to SOlD
 // Pushes the item id to purchase list of the user.
@@ -505,17 +519,24 @@ app.get('/check/ace/', (req, res) => {
 // else it will return Login Failed.
 app.post('/account/login/', (req, res) => {
   var { u, p } = req.body;
-  let p1 = User.find({ username: u, password: p })
+  let p1 = User.find({ username: u})
   currentUser = req.body.username;
-  p1.then((doc) => {
-    if (doc.length > 0) {
-      let id = addSession(u)
-      res.cookie('login', { username: u, sid: id }, { maxAge: 300000000 });
-
-      res.send("LOGIN");
-    } else {
+  p1.then((results) => {
+    if (results.length == 1) {
+      let existingSalt = results[0].salt;
+      let toHash = p + existingSalt;
+      var hash = crypto.createHash('sha3-256');
+      let data = hash.update(toHash, 'utf-8');
+      let newHash = data.digest('hex');
+      if (newHash == results[0].hash) {
+        let id = cm.sessions.addOrUpdateSession(u);
+        res.cookie("login", {username: u, sid: id}, {maxAge: 60000*60*24});
+        res.send("LOGIN");
+      } else {
       res.end("Login Failed")
     }
+  } else {
+  res.end("Login Failed")}
   });
 });
 
@@ -528,9 +549,17 @@ app.post('/add/user/', (req, res) => {
     .then((doc) => {
       //console.log(doc.length)
       if (doc.length == 0) {
+        
+        let newSalt = Math.floor((Math.random() * 1000000));
+        let toHash = req.body.password + newSalt;
+        var hash = crypto.createHash('sha3-256');
+        let data = hash.update(toHash, 'utf-8');
+        let newHash = data.digest('hex');
+
         var newUser = new User({
           username: req.body.username,
-          password: req.body.password,
+          salt: newSalt,
+          hash: newHash,
           balance: 1000,
           roundsPlayed: 0,
           Wins: 0,

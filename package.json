@@ -1,6 +1,8 @@
 {
   "dependencies": {
     "cookie-parser": "^1.4.6",
+    "crypto": "^1.0.1",
+    "crypto-js": "^4.1.1",
     "express": "^4.18.2",
     "install": "^0.13.0",
     "line-reader": "^0.4.0",
