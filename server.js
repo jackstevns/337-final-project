@@ -738,6 +738,7 @@ app.post('/new/random/game/', (req, res) => {
     }
     else {
       var newGame = new Game({
+        Turn: "Unknown",
         Players: [un]
       });
       newGame.save().then(() => {
@@ -810,9 +811,9 @@ app.get('/is/game/ready/', (req, res) => {
   })
 });
 
-console.log('deleting games')
-Game.find({}).deleteMany().exec().then(() => {
-})
+// console.log('deleting games')
+// Game.find({}).deleteMany().exec().then(() => {
+// })
 
 app.post('/enter/code/room', (req, res) => {
   let un = req.body.username;
@@ -832,3 +833,57 @@ app.post('/enter/code/room', (req, res) => {
     }
   }) 
 })
+
+app.get("/get/multiplayer/", (req, res) => {
+  let un = req.cookies.login.username;
+  //console.log(un)
+  Game.find({ Players: { $in: [ un ] } }).exec().then((results) => {
+    let player = (results[0].Players[0])
+    Game.updateOne(
+      {Code : results[0].Code},
+      {$set:{Turn:player}})
+      .catch((err) => {
+        console.log(err)
+      })
+    res.end(JSON.stringify(results))
+}).catch((err) =>{
+  console.log(err)
+})
+})
+
+app.get("/update/turn/", (req, res) => {
+  let un = req.cookies.login.username;
+  console.log(un)
+  Game.find({ Players: { $in: [ un ] } }).exec().then((results) => {
+    console.log(results)
+    playerlist = results[0].Players
+    let lastplayed = results[0].Turn
+    var newplayer = ''
+    console.log("lastplayed"+lastplayed)
+    console.log("lastplayed"+lastplayed)
+    for( var i = 0; i < playerlist.length; i++)
+      if (playerlist[i] == lastplayed){
+        if(playerlist[i+1] != undefined){
+          console.log("newplayer:"+ playerlist[i+1])
+          newplayer = playerlist[i+1]
+          break;
+        }else{
+          console.log("newplayer:"+ playerlist[i+1])
+          newplayer = "Dealer"
+          break;
+        }
+        
+      }
+    console.log(newplayer)
+    Game.updateOne(
+      {Code : results[0].Code},
+      {$set:{Turn:newplayer}})
+      .catch((err) => {
+        console.log(err)
+      })
+    res.end(JSON.stringify(results))
+}).catch((err) =>{
+  console.log(err)
+})
+})
+

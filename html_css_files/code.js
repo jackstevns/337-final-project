@@ -317,11 +317,40 @@ function updatePlayer(outcome) {
 
 
 DealercurrentTotal = 0;
-function stay() {
+function stayMultiplayer() {
+  url = "/get/multiplayer/"
+  fetch(url)
+  .then((response) =>{
+  return response.json()})
+  .then((results) => {
+    
+    let player = results[0].Players
+    let turn  = results[0].Turn;
+    console.log("CLIENTLASTTURN: "+turn)
+    console.log(player)
+    if (player[0] == turn){
+      document.getElementById("stayButtonp1").disabled = true;
+      document.getElementById("hitButtonp1").disabled = true;
+      document.getElementById("stayButtonp2").disabled = false;
+      document.getElementById("hitButtonp2").disabled = false;
+    }
+    if (player[1] == turn){
+      document.getElementById("stayButtonp2").disabled = true;
+      document.getElementById("hitButtonp2").disabled = true;
+      document.getElementById("stayButtonp3").disabled = false;
+      document.getElementById("hitButtonp3").disabled = false;
+    }
+    if (player[2] == turn){
+      document.getElementById("stayButtonp2").disabled = true;
+      document.getElementById("hitButtonp2").disabled = true;
+      document.getElementById("stayButtonp3").disabled = false;
+      document.getElementById("hitButtonp3").disabled = false;
+    }
+    if ("Dealer" == turn){
+      document.getElementById("stayButtonp3").disabled = true;
+      document.getElementById("hitButtonp3").disabled = true;
   if (gameInSession) {
     showCards("");
-    document.getElementById("stayButton").disabled = true;
-    document.getElementById("hitButton").disabled = true;
     keepGoing = true;
     currentTotal = 0;
     fetch('/get/dealer/')
@@ -390,6 +419,14 @@ function stay() {
       })
   }
 }
+}).then((results) =>{
+  fetch("/update/turn/").then((response) =>{
+    return response.json()
+  }).then((results) => {
+    console.log(results)
+  })
+})}
+
 
 function showCards(message) {
   currentTotal = 0;
@@ -634,4 +671,118 @@ function codeGame() {
         setInterval(updateWaiting, 3000)
       });
     })
+}
+
+
+function getMultiuser(){
+  url = "/get/multiplayer/"
+  fetch(url).then((response) =>{
+    return response.json()
+  }).then((results) => {
+    console.log(results)
+    let player1 = document.getElementById("player1Details")
+    player1.innerText = results[0].Players[0]
+    let player2 = document.getElementById("player2Details")
+    player2.innerText = results[0].Players[1]
+    let player3 = document.getElementById("player3Details")
+    player3.innerText = results[0].Players[2]
+  }).catch((err) =>{
+    console.log(err)
+  })
+}
+
+
+
+function startmultiplayer(){
+  url = "/get/multiplayer/"
+  fetch(url).then((response) =>{
+    return response.json()
+  }).then((results) => {
+    gameInSession = true;
+    // deal cards NEEDED HERE 
+    console.log(results)
+    let player1 = document.getElementById("player1Details")
+    player1.innerText = results[0].Players[0]
+    document.getElementById("startButton").disabled = true;
+    document.getElementById("stayButtonp1").disabled = false;
+    document.getElementById("hitButtonp1").disabled = false;
+  }).catch((err) =>{
+    console.log(err)
+  })
+}
+
+
+
+function stay() {
+  if (gameInSession) {
+    showCards("");
+    document.getElementById("stayButton").disabled = true;
+    document.getElementById("hitButton").disabled = true;
+    keepGoing = true;
+    currentTotal = 0;
+    fetch('/get/dealer/')
+      .then((results) => {
+        return results.text();
+      })
+      .then((text) => {
+        setTimeout(() => {
+          fetch('/turn/dealer/')
+            .then((response) => {
+              return response.text()
+            })
+            .then((doctext) => {
+              var text = doctext;
+              fetch('/get/dealer/').then((results) => {
+                return results.json();
+              }).then((dealerRes) => {
+                document.getElementById("dealerTotal").innerHTML = "Total: " + dealerRes.Total;
+                console.log(text);
+                if (text == "BUST") {
+                  gameInSession = false;
+                  keepGoing = false;
+                  showCards("Dealer Busted. You Won.")
+                  updatePlayer("won")
+                  //alert("Dealer Busted. You Win")
+
+                }
+                if (text == "DEALER") {
+                  gameInSession = false;
+                  keepGoing = false;
+                  showCards("Dealer won.")
+                  updatePlayer("lost")
+                  //alert("Dealer Won.")
+
+                }
+                if (text == "PLAYER") {
+                  gameInSession = false;
+                  keepGoing = false;
+                  showCards("You won.")
+                  updatePlayer("won")
+                  //alert("You win")
+
+                }
+                if (text == "TIE") {
+                  gameInSession = false;
+                  keepGoing = false;
+                  showCards("Tied.")
+                  updatePlayer("tied")
+                  //alert("Tied.")
+
+                }
+                if (text == "true") {
+                  showCards("")
+                  gameInSession = true;
+                  keepGoing = true;
+                }
+                return keepGoing;
+              }).then((bool) => {
+                if (bool) {
+                  stay();
+                }
+              })
+            })
+
+        }, 1500)
+      })
+  }
 }

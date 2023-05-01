@@ -79,7 +79,7 @@ h1 {
     padding-left: 5%;
     padding-right: 5%;
 }
-#player1Details {
+#player1Details, #player1 {
     margin-top: 3vw;
     margin-bottom: 2vw;
     margin-left: 16%;
@@ -169,4 +169,9 @@ button{
     margin-top: 0.5vw;
     padding-top: 0vw;
     
+  }
+
+  #player1{
+    margin-left: auto;
+    margin-right:auto;
   }
