@@ -692,14 +692,14 @@ function startMulti() {
         method: 'POST',
         headers: { "Content-Type": "application/json" }
       })
-      .then((data) => {
-        return data.text();
-      }).then((text) => {
-        console.log(text)
-        if (text == "Okay") {
-          interval = setInterval(checkGameStart, 3000)
-        }
-      });
+        .then((data) => {
+          return data.text();
+        }).then((text) => {
+          console.log(text)
+          if (text == "Okay") {
+            interval = setInterval(checkGameStart, 3000)
+          }
+        });
     }
   })
 }
@@ -718,6 +718,130 @@ function checkGameStart() {
 }
 
 function showEveryCard(game) {
+  players = game.Players;
+  cards = game.Hands;
+  turn = game.Turn;
+  document.getElementById("dealerhand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/cardback.jpeg">'
+  fetch('/get/user').then((userRes) => {
+    return userRes.json()
+  }).then((user) => {
+    if (players[0] == user.username) {
+      document.getElementById("3hand").innerHTML = '<img class = "card" src="img/' + cards[0].split(" ")[1] + '.png"><img class = "card" src="img/' + cards[4].split(" ")[1] + '.png">';
+      document.getElementById("2hand").innerHTML = '<img class = "card" src="img/' + cards[1].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
+      document.getElementById("1hand").innerHTML = '<img class = "card" src="img/' + cards[2].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
+      
+      // if (turn == user.username) {
+      //   document.getElementById("stayButton").disabled = false;
+      //   document.getElementById("hitButton").disabled = false;
+      // }
+    }
+    else if (players[1] == user.username) {
+      document.getElementById("3hand").innerHTML = '<img class = "card" src="img/' + cards[0].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
+      document.getElementById("2hand").innerHTML = '<img class = "card" src="img/' + cards[1].split(" ")[1] + '.png"><img class = "card" src="img/' + cards[5].split(" ")[1] + '.png">';
+      document.getElementById("1hand").innerHTML = '<img class = "card" src="img/' + cards[2].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
+    }
+    else if (players[2] == user.username) {
+      document.getElementById("3hand").innerHTML = '<img class = "card" src="img/' + cards[0].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
+      document.getElementById("2hand").innerHTML = '<img class = "card" src="img/' + cards[1].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
+      document.getElementById("1hand").innerHTML = '<img class = "card" src="img/' + cards[2].split(" ")[1] + '.png"><img class = "card" src="img/' + cards[6].split(" ")[1] + '.png">';
+    }
+    turnInterval = setInterval(frequentUpdate, 1000)
+    if (game.Turn == user.username) {
+      document.getElementById("stayButton").disabled = false;
+      document.getElementById("hitButton").disabled = false;
+    }
+  }).then(() => {
+    
+  })
+}
+
+function hitMulti() {
+  if (gameInSession) {
+    currentTotal = 0;
+    fetch('/hit/card/multi/')
+      .then((result) => {
+        //console.log(result);
+        url = '/get/user'
+        fetch(url).then((results) => {
+          console.log("hitting user")
+          return results.json();
+        }).then((text) => {
+          //console.log(text);
+          var final = ''
+          //<img id = "card" src="img/aceclubs.png" alt="My Image"></img>
+          for (c in text.CurrentHand) {
+            //console.log(text.CurrentHand[c].Suit.toLowerCase() + text.CurrentHand[c].Value + ".png")
+            final += '<img class = "card" src="img/' + text.CurrentHand[c].Suit.toLowerCase() + text.CurrentHand[c].Name.toLowerCase() + ".png" + '" alt="My Image"></img>'
+            currentTotal += text.CurrentHand[c].Value
+          }
+          //console.log(final)
+          if (players[0] == text.username) {
+            document.getElementById("3hand").innerHTML = final;
+          }
+          else if (players[1] == text.username) {
+            document.getElementById("2hand").innerHTML = final;
+          }
+          else if (players[2] == text.username) {
+            document.getElementById("1hand").innerHTML = final;
+          }
+          //document.getElementById("totalDetails").innerHTML = 'Total: ' + text.Total;
+        }).then(() => {
+          if (currentTotal > 21) {
+            fetch('/check/ace/').then((result) => {
+              //console.log(result)
+              return result.json()
+            }).then((text2) => {
+              //console.log(text2)
+              //console.log(text2.Total);
+              if (text2.Total > 21) {
+                gameInSession = false;
+                bustedMulti("You busted. Keep watching to see the dealer's cards.");
+                updatePlayer("lost");
+              }
+              else {
+                //document.getElementById("totalDetails").innerHTML = 'Total: ' + text2.Total;
+              }
+            })
+          }
+        })
+      })
+  }
+}
+
+function bustedMulti(message) {
+  alert(message)
+  document.getElementById("stayButton").disabled = true;
+  document.getElementById("hitButton").disabled = true;
+  fetch('/switch/turn')
+}
+
+function stayMulti() {
+  fetch('/switch/turn')
+  document.getElementById("stayButton").disabled = true;
+  document.getElementById("hitButton").disabled = true;
+}
+
+function frequentUpdate() {
+  // fetch('/all/players/cards/').then((results) => {
+  //   return results.json();
+  // }).then((result) => {
+  //   console.log(result)
+  //   clearInterval(interval)
+  //   showOtherCards(result)
+  // })
+  console.log('checking if its my turn')
+  fetch('/is/it/my/turn/yet/').then((results) => {
+    return results.text()
+  }).then((result) => {
+    if (result == "true") {
+      document.getElementById("stayButton").disabled = false;
+      document.getElementById("hitButton").disabled = false;
+      clearInterval(turnInterval)
+    }
+  })
+}
+
+function showOtherCards(game) {
   players = game.Players;
   cards = game.Hands;
   turn = game.Turn;
@@ -748,6 +872,6 @@ function showEveryCard(game) {
       return;
     }
   }).then(() => {
- 
+
   })
 }
