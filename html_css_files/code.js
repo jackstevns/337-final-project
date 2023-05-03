@@ -710,7 +710,7 @@ function checkGameStart() {
     return results.json();
   }).then((result) => {
     console.log(result)
-    if (result.Hands.length == 8) {
+    if (result.Hands.length >= 8) {
       clearInterval(interval)
       showEveryCard(result)
     }
@@ -729,7 +729,7 @@ function showEveryCard(game) {
       document.getElementById("3hand").innerHTML = '<img class = "card" src="img/' + cards[0].split(" ")[1] + '.png"><img class = "card" src="img/' + cards[4].split(" ")[1] + '.png">';
       document.getElementById("2hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[5].split(" ")[1] + '.png">';
       document.getElementById("1hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[6].split(" ")[1] + '.png">';
-      
+
       // if (turn == user.username) {
       //   document.getElementById("stayButton").disabled = false;
       //   document.getElementById("hitButton").disabled = false;
@@ -751,10 +751,11 @@ function showEveryCard(game) {
       document.getElementById("hitButton").disabled = false;
     }
   }).then(() => {
-    
+
   })
 }
-
+var rand1 = 0;
+var rand2 = 0;
 function hitMulti() {
   if (gameInSession) {
     currentTotal = 0;
@@ -810,6 +811,8 @@ function hitMulti() {
 
 function bustedMulti(message) {
   alert(message)
+  rand1 = 0;
+  rand2 = 0
   document.getElementById("stayButton").disabled = true;
   document.getElementById("hitButton").disabled = true;
   fetch('/switch/turn')
@@ -817,29 +820,26 @@ function bustedMulti(message) {
 
 function stayMulti() {
   fetch('/switch/turn')
+  rand1 = 0;
+  rand2 = 0
   document.getElementById("stayButton").disabled = true;
   document.getElementById("hitButton").disabled = true;
 }
 
+frequentCount = 0
 function frequentUpdate() {
-  // fetch('/all/players/cards/').then((results) => {
-  //   return results.json();
-  // }).then((result) => {
-  //   console.log(result)
-  //   clearInterval(interval)
-  //   showOtherCards(result)
-  // })
   console.log('checking if its my turn')
   fetch('/is/it/my/turn/yet/').then((results) => {
     return results.text()
   }).then((result) => {
+    if (frequentCount == 0) {
+      updateInterval = setInterval(updateOtherUserCards, 3000)
+      frequentCount++
+    }
     if (result == "true") {
       document.getElementById("stayButton").disabled = false;
       document.getElementById("hitButton").disabled = false;
       clearInterval(turnInterval)
-      updateInterval = setInterval(updateOtherUserCards, 3000)
-    } else {
-      updateInterval = setInterval(updateOtherUserCards, 3000)
     }
   })
 }
@@ -874,7 +874,7 @@ function updateOtherUserCards() {
               document.getElementById("2hand").innerHTML = twoHand;
             }
             if (document.getElementById("1hand").innerHTML != oneHand) {
-            document.getElementById("1hand").innerHTML = oneHand;
+              document.getElementById("1hand").innerHTML = oneHand;
             }
           } else if (results.Players[1] == user.username) {
             if (document.getElementById("3hand").innerHTML != threeHand) {
@@ -888,23 +888,22 @@ function updateOtherUserCards() {
               document.getElementById("3hand").innerHTML = threeHand;
             }
             if (document.getElementById("2hand").innerHTML != twoHand) {
-            document.getElementById("2hand").innerHTML = twoHand;
+              document.getElementById("2hand").innerHTML = twoHand;
             }
           }
         }
       }
 
       if (results.Turn == "Dealer") {
-        clearInterval(updateInterval)
-        manageShowing()
-        initialShowDealer()
+        // clearInterval(updateInterval)
+        if (rand1 == 0) {
+          initialShowDealer();
+          clearInterval(updateInterval)
+        }
+        rand1++
       }
     })
   })
-}
-
-function manageShowing() {
-  
 }
 
 function initialShowDealer() {
@@ -931,17 +930,15 @@ function initialShowDealer() {
       //   alert(message + " Updated stats.");
       // }
     }
-    
+  }).then(() => {
     fetch('/ready/for/dealer').then((result) => {
       return result.text()
     }).then((text) => {
       console.log(text)
       if (text == "ready") {
-        dealerCardsInterval = setInterval(showDealerCards, 1000)
+        dealerCardsInterval = setInterval(showDealerCards, 3000)
       }
     })
-  }).then(() => {
-    
   })
 }
 
@@ -972,35 +969,52 @@ function showDealerCards() {
     fetch('/is/dealer/done').then((result) => {
       return result.text()
     }).then((answer) => {
+      console.log(answer)
       if (answer == "yes") {
+        console.log(rand2)
         clearInterval(dealerCardsInterval)
-        getFinalStanding(text.Total);
+        if (rand2 == 0) {
+          getFinalStanding(dealerTotal)
+          rand2++
+        }
       }
     })
   })
 }
 
 function getFinalStanding(dealerTotal) {
+  console.log('here')
   fetch('/get/user').then((result) => {
     return result.json()
   }).then((user) => {
+    fetch('/get/dealer/multi').then((resu) => {
+      return resu.json()
+    }).then((dealer) => {
+      dealerTotal = dealer.Total
     if (user.Total < 22) {
       if (user.Total > dealerTotal) {
-        alert("You won against the dealer! Stats updated")
+        alert("You won against the dealer! Stats updated. Press start to play again.")
         updatePlayer("won")
+        document.getElementById("startButton").disabled = false;
+        document.getElementById("betinput").disabled = false;
       }
       else if (user.Total < dealerTotal) {
-        alert("You lost against the dealer.")
+        alert("You lost against the dealer. Press start to play again.")
         updatePlayer("lost")
+        document.getElementById("startButton").disabled = false;
+        document.getElementById("betinput").disabled = false;
       }
       else if (user.Total == dealerTotal) {
-        alert("You tied with the dealer. Stats updated")
+        alert("You tied with the dealer. Stats updated. Press start to play again.")
         updatePlayer("tied")
+        document.getElementById("startButton").disabled = false;
+        document.getElementById("betinput").disabled = false;
       }
     }
   })
+  })
 
-  }
+}
 
 function showOtherCards(game) {
   players = game.Players;

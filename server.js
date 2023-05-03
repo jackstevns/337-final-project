@@ -112,8 +112,7 @@ var GameSchema = new mongoose.Schema({
   Start: Number,
   Hands: [String],
   Finished: Boolean,
-  ReadyForDealer: Number,
-  DealerDone: Boolean
+  ReadyForDealer: Number
 })
 var Game = mongoose.model('Game', GameSchema);
 //Game.find({}).deleteMany().exec();
@@ -809,7 +808,13 @@ app.post('/new/code/game/', (req, res) => {
         Turn: un
       });
       newGame.save().then(() => {
-        res.end(code)
+        User.updateOne(
+          { username: un },
+          {
+            $set: { CurrentHand: [], Total: 0 }
+          }).then(() => {
+            res.end(code)
+          })
       })
     }
   })
@@ -874,7 +879,13 @@ app.post('/enter/code/room', (req, res) => {
         { Code: code },
         { $push: { Players: un } }
       ).then(() => {
-        res.end("Success")
+        User.updateOne(
+          { username: un },
+          {
+            $set: { CurrentHand: [], Total: 0 }
+          }).then(() => {
+            res.end("Success")
+          })
       })
     }
     else {
@@ -894,6 +905,7 @@ app.post('/player/ready/', (req, res) => {
       { $inc: { Start: 1 } }
     ).then(() => {
       if (thisCount == 2) {
+        
         multiGameDealing(thisString, results[0], res);
       }
 
@@ -1175,6 +1187,14 @@ function shouldHitDealer(gameID) {
       }
       else if (dealerRes[0].Total > 21) {
         callAceCheckDealer(dealerRes[0])
+        User.find({username: dealerString}).exec().then((deal) => {
+          if (deal[0].Total < 17) {
+            hitDealerMulti(dealerString, gameID);
+          }
+          else {
+            endGame(dealerString, gameID)
+          }
+        })
       }
       else if (dealerRes[0].Total > 16) {
         endGame(dealerString, gameID);
@@ -1262,16 +1282,25 @@ function aceCheckDealer(userData, i, final) {
         //console.log(changeRes)
         console.log('updated value of ace to 1, this is the hand now:')
         User.find({ username: userData.username }).exec().then((results) => {
-          if (results[0].Total < 21) {
-            shouldHitDealer(userData.username)
+          if (i == final) {
+            //console.log('i == final, sending back to route')
+            resolve()
+
+          }
+          else if (results[0].Total < 21) {
             resolve()
           }
+            else {
+              //console.log('total is <21 now, sending back to client')
+              resolve()
+            }
 
-        })
-      })
-    }
-  })
-}
+          }
+
+        )
+      }
+  )}
+    })}
 
 async function callAceCheckDealer(us) {
   let i = 0;
@@ -1299,7 +1328,9 @@ function endGame(dealerString, gameID) {
   Game.updateOne(
     { _id: gameID },
     { $set: { Finished: true } }
-  )
+  ).then(() => {
+
+  })
 }
 
 app.get('/is/it/my/turn/yet/', (req, res) => {
@@ -1364,10 +1395,19 @@ app.get('/ready/for/dealer', (req, res) => {
 app.get('/is/dealer/done', (req, res) => {
   username = req.cookies.login.username;
   Game.find({Players: username}).exec().then((gameRes) => {
-    if (gameRes[0].DealerDone == true) {
+    if (gameRes[0].Finished == true) {
+      setTimeout(() => {resetMultiGame(gameRes[0]._id)}, 10000)
       res.end("yes")
     } else {
       res.end("no")
     }
   })
 })
+
+function resetMultiGame(gameID) {
+  Game.updateOne(
+    {_id: gameId},
+    { $set: {Players: [], Hands: []}},
+    { $unset: {Turn:"", Start:"", Deck:"", Finished: "", ReadyForDealer: ""}}
+  )
+}
