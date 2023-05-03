@@ -727,8 +727,8 @@ function showEveryCard(game) {
   }).then((user) => {
     if (players[0] == user.username) {
       document.getElementById("3hand").innerHTML = '<img class = "card" src="img/' + cards[0].split(" ")[1] + '.png"><img class = "card" src="img/' + cards[4].split(" ")[1] + '.png">';
-      document.getElementById("2hand").innerHTML = '<img class = "card" src="img/' + cards[1].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
-      document.getElementById("1hand").innerHTML = '<img class = "card" src="img/' + cards[2].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
+      document.getElementById("2hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[5].split(" ")[1] + '.png">';
+      document.getElementById("1hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[6].split(" ")[1] + '.png">';
       
       // if (turn == user.username) {
       //   document.getElementById("stayButton").disabled = false;
@@ -736,13 +736,13 @@ function showEveryCard(game) {
       // }
     }
     else if (players[1] == user.username) {
-      document.getElementById("3hand").innerHTML = '<img class = "card" src="img/' + cards[0].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
+      document.getElementById("3hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[4].split(" ")[1] + '.png">';
       document.getElementById("2hand").innerHTML = '<img class = "card" src="img/' + cards[1].split(" ")[1] + '.png"><img class = "card" src="img/' + cards[5].split(" ")[1] + '.png">';
-      document.getElementById("1hand").innerHTML = '<img class = "card" src="img/' + cards[2].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
+      document.getElementById("1hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[6].split(" ")[1] + '.png">';
     }
     else if (players[2] == user.username) {
-      document.getElementById("3hand").innerHTML = '<img class = "card" src="img/' + cards[0].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
-      document.getElementById("2hand").innerHTML = '<img class = "card" src="img/' + cards[1].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
+      document.getElementById("3hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[4].split(" ")[1] + '.png">';
+      document.getElementById("2hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[5].split(" ")[1] + '.png">';
       document.getElementById("1hand").innerHTML = '<img class = "card" src="img/' + cards[2].split(" ")[1] + '.png"><img class = "card" src="img/' + cards[6].split(" ")[1] + '.png">';
     }
     turnInterval = setInterval(frequentUpdate, 1000)
@@ -837,9 +837,170 @@ function frequentUpdate() {
       document.getElementById("stayButton").disabled = false;
       document.getElementById("hitButton").disabled = false;
       clearInterval(turnInterval)
+      updateInterval = setInterval(updateOtherUserCards, 3000)
+    } else {
+      updateInterval = setInterval(updateOtherUserCards, 3000)
     }
   })
 }
+
+function updateOtherUserCards() {
+  fetch('/get/user').then((userRes) => {
+    return userRes.json()
+  }).then((user) => {
+    fetch('/update/my/screen/').then((result) => {
+      return result.json()
+    }).then((results) => {
+      p3 = results.Players[0];
+      p2 = results.Players[1];
+      p1 = results.Players[2];
+      threeHand = '<img class = "card" src="img/cardback.jpeg">'
+      twoHand = '<img class = "card" src="img/cardback.jpeg">'
+      oneHand = '<img class = "card" src="img/cardback.jpeg">'
+      for (let c = 4; c < results.Hands.length; c++) {
+        line = results.Hands[c].split(" ");
+        if (line[0] == p3) {
+          threeHand += '<img class = "card" src="img/' + line[1] + '.png">';
+        }
+        else if (line[0] == p2) {
+          twoHand += '<img class = "card" src="img/' + line[1] + '.png">';
+        }
+        else if (line[0] == p1) {
+          oneHand += '<img class = "card" src="img/' + line[1] + '.png">';
+        }
+        if (c == results.Hands.length - 1) {
+          if (results.Players[0] == user.username) {
+            if (document.getElementById("2hand").innerHTML != twoHand) {
+              document.getElementById("2hand").innerHTML = twoHand;
+            }
+            if (document.getElementById("1hand").innerHTML != oneHand) {
+            document.getElementById("1hand").innerHTML = oneHand;
+            }
+          } else if (results.Players[1] == user.username) {
+            if (document.getElementById("3hand").innerHTML != threeHand) {
+              document.getElementById("3hand").innerHTML = threeHand;
+            }
+            if (document.getElementById("1hand").innerHTML != oneHand) {
+              document.getElementById("1hand").innerHTML = oneHand;
+            }
+          } else if (results.Players[2] == user.username) {
+            if (document.getElementById("3hand").innerHTML != threeHand) {
+              document.getElementById("3hand").innerHTML = threeHand;
+            }
+            if (document.getElementById("2hand").innerHTML != twoHand) {
+            document.getElementById("2hand").innerHTML = twoHand;
+            }
+          }
+        }
+      }
+
+      if (results.Turn == "Dealer") {
+        clearInterval(updateInterval)
+        manageShowing()
+        initialShowDealer()
+      }
+    })
+  })
+}
+
+function manageShowing() {
+  
+}
+
+function initialShowDealer() {
+  fetch('/get/dealer/multi').then((result) => {
+    return result.json()
+  }).then((text) => {
+    var final = ''
+    //<img id = "card" src="img/aceclubs.png" alt="My Image"></img>
+    for (c in text.CurrentHand) {
+      //console.log(text.CurrentHand[c].Suit.toLowerCase() + text.CurrentHand[c].Value + ".png")
+      final += '<img class = "card" src="img/' + text.CurrentHand[c].Suit.toLowerCase() + text.CurrentHand[c].Name.toLowerCase() + ".png" + '" alt="My Image"></img>'
+      currentTotal += text.CurrentHand[c].Value
+    }
+    //console.log(final)
+    current = document.getElementById("dealerhand");
+    //document.getElementById("dealerTotal").innerHTML = 'Total: ' + text.Total;
+    if (current.innerHTML != final && final != "") {
+      current.innerHTML = final
+      // if (message != "") {
+      //   document.getElementById("startButton").disabled = false;
+      //   document.getElementById("betinput").disabled = false;
+      //   document.getElementById("stayButton").disabled = true;
+      //   document.getElementById("hitButton").disabled = true;
+      //   alert(message + " Updated stats.");
+      // }
+    }
+    
+    fetch('/ready/for/dealer').then((result) => {
+      return result.text()
+    }).then((text) => {
+      console.log(text)
+      if (text == "ready") {
+        dealerCardsInterval = setInterval(showDealerCards, 1000)
+      }
+    })
+  }).then(() => {
+    
+  })
+}
+
+function showDealerCards() {
+  fetch('/get/dealer/multi').then((result) => {
+    return result.json()
+  }).then((text) => {
+    var final = ''
+    //<img id = "card" src="img/aceclubs.png" alt="My Image"></img>
+    for (c in text.CurrentHand) {
+      //console.log(text.CurrentHand[c].Suit.toLowerCase() + text.CurrentHand[c].Value + ".png")
+      final += '<img class = "card" src="img/' + text.CurrentHand[c].Suit.toLowerCase() + text.CurrentHand[c].Name.toLowerCase() + ".png" + '" alt="My Image"></img>'
+      currentTotal += text.CurrentHand[c].Value
+    }
+    //console.log(final)
+    current = document.getElementById("dealerhand");
+    //document.getElementById("dealerTotal").innerHTML = 'Total: ' + text.Total;
+    if (current.innerHTML != final && final != "") {
+      current.innerHTML = final
+      // if (message != "") {
+      //   document.getElementById("startButton").disabled = false;
+      //   document.getElementById("betinput").disabled = false;
+      //   document.getElementById("stayButton").disabled = true;
+      //   document.getElementById("hitButton").disabled = true;
+      //   alert(message + " Updated stats.");
+      // }
+    }
+    fetch('/is/dealer/done').then((result) => {
+      return result.text()
+    }).then((answer) => {
+      if (answer == "yes") {
+        clearInterval(dealerCardsInterval)
+        getFinalStanding(text.Total);
+      }
+    })
+  })
+}
+
+function getFinalStanding(dealerTotal) {
+  fetch('/get/user').then((result) => {
+    return result.json()
+  }).then((user) => {
+    if (user.Total < 22) {
+      if (user.Total > dealerTotal) {
+        alert("You won against the dealer! Stats updated")
+        updatePlayer("won")
+      }
+      else if (user.Total < dealerTotal) {
+        alert("You lost against the dealer.")
+        updatePlayer("lost")
+      }
+      else if (user.Total == dealerTotal) {
+        alert("You tied with the dealer. Stats updated")
+        updatePlayer("tied")
+      }
+    }
+  })
+
+  }
 
 function showOtherCards(game) {
   players = game.Players;
@@ -851,8 +1012,8 @@ function showOtherCards(game) {
   }).then((user) => {
     if (players[0] == user.username) {
       document.getElementById("3hand").innerHTML = '<img class = "card" src="img/' + cards[0].split(" ")[1] + '.png"><img class = "card" src="img/' + cards[4].split(" ")[1] + '.png">';
-      document.getElementById("2hand").innerHTML = '<img class = "card" src="img/' + cards[1].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
-      document.getElementById("1hand").innerHTML = '<img class = "card" src="img/' + cards[2].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
+      document.getElementById("2hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[5].split(" ")[1] + '.png">';
+      document.getElementById("1hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[6].split(" ")[1] + '.png">';
       // if (turn == user.username) {
       //   document.getElementById("stayButton").disabled = false;
       //   document.getElementById("hitButton").disabled = false;
@@ -860,14 +1021,14 @@ function showOtherCards(game) {
       return;
     }
     else if (players[1] == user.username) {
-      document.getElementById("3hand").innerHTML = '<img class = "card" src="img/' + cards[0].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
+      document.getElementById("3hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[4].split(" ")[1] + '.png">';
       document.getElementById("2hand").innerHTML = '<img class = "card" src="img/' + cards[1].split(" ")[1] + '.png"><img class = "card" src="img/' + cards[5].split(" ")[1] + '.png">';
-      document.getElementById("1hand").innerHTML = '<img class = "card" src="img/' + cards[2].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
+      document.getElementById("1hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[6].split(" ")[1] + '.png">';
       return;
     }
     else if (players[2] == user.username) {
-      document.getElementById("3hand").innerHTML = '<img class = "card" src="img/' + cards[0].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
-      document.getElementById("2hand").innerHTML = '<img class = "card" src="img/' + cards[1].split(" ")[1] + '.png"><img class = "card" src="img/cardback.jpeg">';
+      document.getElementById("3hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[4].split(" ")[1] + '.png">';
+      document.getElementById("2hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[5].split(" ")[1] + '.png">';
       document.getElementById("1hand").innerHTML = '<img class = "card" src="img/' + cards[2].split(" ")[1] + '.png"><img class = "card" src="img/' + cards[6].split(" ")[1] + '.png">';
       return;
     }
