@@ -76,46 +76,10 @@ var GameSchema = new mongoose.Schema({
 var Game = mongoose.model('Game', GameSchema);
 //Game.find({}).deleteMany().exec();
 
-//add current session
-sessions = {}
-function addSession(user) {
-  var sessionId = Math.floor(Math.random() * 100000);
-  var sessionStart = Date.now();
-  sessions[user] = { 'sid': sessionId, 'start': sessionStart };
-  return sessionId;
-}
-
-//checks to see if user has active session
-function doesUserHaveSession(user, sessionId) {
-  let entry = sessions[user]
-  if (entry != undefined) {
-    return entry.sid === sessionId
-  }
-  return false;
-}
-
-// cleans up session once they reach a certain age
-const SESSION_LENGTH = 6000000
-
-function cleanupSeasons() {
-  let CurrentTime = Date.now()
-  for (i in sessions) {
-    let sess = sessions[i];
-    if (sess.start + SESSION_LENGTH < CurrentTime) {
-      console.log('removing session for user: ' + i)
-      delete sessions[i]
-    } else {
-      console.log('keeping session for user: ' + i)
-    }
-  }
-}
-
-setInterval(cleanupSeasons, 6000000)
 
 // It will redirected the page back to the login 
 // if no cookie is found.
 function authenticate(req, res, next) {
-  console.log("YES")
   let c = req.cookies;
   if (c && c.login) {
     let result = cm.sessions.doesUserHaveSession(c.login.username, c.login.sid);
@@ -1380,7 +1344,6 @@ function resetMultiGame(gameID) {
 }
 app.post('/logout', (req, res) => {
   console.log("HELP")
-  res.clearCookie('login', {
-      domain: req.cookies.login.username,
-      path: '/'
-  });});
+  res.clearCookie('login');
+  res.end()
+});

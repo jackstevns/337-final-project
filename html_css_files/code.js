@@ -140,12 +140,12 @@ function exit() {
   window.location.href = '/home.html'
 }
 
-function signout() {
+function signOut() {
   console.log("SIGNING OUT")
-  fetch('/logout', {
-    method: 'POST',
-    credentials: 'include',
-});}
+  fetch('/logout', { method: 'POST', credentials: 'same-origin' })
+.then(() =>{
+  window.location.href = '/index.html'
+})}
 
 function returnHome(){ 
   window.location.href = '/home.html'
@@ -435,11 +435,6 @@ function clearCardDisplay() {
 
 function exit() {
   window.location.href = './home.html';
-}
-
-function signOut() {
-  window.location.href = './index.html';
-  // Erase cookies and session!!!
 }
 
 function randomRoom() {
