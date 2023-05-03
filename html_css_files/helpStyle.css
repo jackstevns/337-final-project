@@ -1,0 +1,92 @@
+/*
+    File: indexStyle.css 
+    Author: Alisha Stadler
+    CSC 337 Spring 2023
+
+    This css file sets style guides for an interface for creating
+    and logging in users for an online marketplace.
+*/
+
+body {
+    margin: 10px;
+    /* background-image: url('greenBack.jpeg'); */
+    background-color: rgb(24, 115, 24);
+    background-size: cover;
+    background-repeat: no-repeat;
+    color: white;
+}
+
+#topBar {
+    display: inline-block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 5vw;
+    background-color: black;
+}
+h3 {
+    position: absolute;
+    left: 4%;
+    top: 10%;
+    font-size: 1.5vw;
+}
+.title {
+    text-align: center;
+    font-size: 2vw;
+    left: 4%;
+}
+h1 {
+    font-size: 3vw;
+    text-align: center;
+    margin-top: 1%;
+}
+#signOutButton {
+    padding: .4vw;
+    position: absolute;
+    right: 4%;
+    top: 30%;
+}
+#content {
+    position: fixed;
+    top: 5vw;
+    height: 92vh;
+    width: 99vw;
+    overflow: scroll;
+}
+
+a {
+    display: block;
+    text-align: center;
+    color: white;
+    margin-top: 1.5vw;
+    font-size: 1.5vw;
+}
+
+.details{
+    margin-right: 10%;
+    font-size: 1vw;
+    background-color: brown;
+    padding: 3vw;
+    border:  solid white;
+    border-radius: 2vw;
+    text-align: center;
+    margin-left: auto;
+    margin-right:auto;
+}
+
+ul {
+    list-style: none;
+    margin-left: 10vw;
+    margin-right: 10vw;
+}
+ li {
+    margin-bottom: 2vw;
+    
+ }
+
+ #returnbutton {
+    text-align: center;
+    font-size: 1vw;
+ }

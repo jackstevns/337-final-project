@@ -141,7 +141,14 @@ function exit() {
 }
 
 function signout() {
-  window.location.href = '/index.html'
+  console.log("SIGNING OUT")
+  fetch('/logout', {
+    method: 'POST',
+    credentials: 'include',
+});}
+
+function returnHome(){ 
+  window.location.href = '/home.html'
 }
 
 hands = {}

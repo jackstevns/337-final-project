@@ -24,47 +24,6 @@ const { setUncaughtExceptionCaptureCallback } = require('process');
 
 cm.sessions.startCleanup();
 
-
-
-// io.use((socket, next) => {
-//   const username = socket.handshake.auth.username;
-//   if (!username) {
-//     return next(new Error("invalid username"));
-//   }
-//   socket.username = username;
-//   next();
-// });
-
-// io.on("connection", (socket) => {
-//   console.log("User Connected ")
-//   const users = [];
-//   for (let [id, socket] of io.of("/").sockets) {
-//     users.push({
-//       userID: id,
-//       username: socket.username,
-//     });
-//   }
-//   console.log(users)
-//   //socket.emit("users", users);
-//   socket.on("checkwaiting", (code) => {
-//     Game.find({Code: code}).exec().then((results) => {
-//       if (results.length == 1) {
-//         Game.updateOne(
-//           {Code: code},
-//           {$push: {Players: socket.username}}
-//         ).then(() => {
-//           socket.join(code)
-//           console.log(socket.rooms)
-//           socket.emit("redirect",'waitingCustomJoined.html')
-//         })
-//       }
-//       else {
-//         socket.emit("incorrectjoinCode")
-//       }
-
-//   })
-// })
-// })
 const connection_string = 'mongodb://127.0.0.1:27017/blackjack';
 
 mongoose.connect(connection_string, { useNewUrlParser: true });
@@ -156,6 +115,7 @@ setInterval(cleanupSeasons, 6000000)
 // It will redirected the page back to the login 
 // if no cookie is found.
 function authenticate(req, res, next) {
+  console.log("YES")
   let c = req.cookies;
   if (c && c.login) {
     let result = cm.sessions.doesUserHaveSession(c.login.username, c.login.sid);
@@ -170,7 +130,12 @@ function authenticate(req, res, next) {
 
 
 app.use(cookieParser())
-app.use('/app/*', authenticate);
+app.use( '/home.html', authenticate);
+app.use('/mode.html', authenticate);
+app.use('/multiGame.html', authenticate);
+app.use('/singleGame.html', authenticate);
+app.use('/waitingCustom.html', authenticate);
+app.use('/Random.html', authenticate);
 
 app.use(express.static('html_css_files'))
 
@@ -235,6 +200,8 @@ function resetDeck(currentUser, res) {
       console.log(err)
     })
 }
+
+
 
 function newCards(currentUser, res) {
   let p = Card.find({}).deleteMany().exec().then((result) => {
@@ -1411,3 +1378,9 @@ function resetMultiGame(gameID) {
     { $unset: {Turn:"", Start:"", Deck:"", Finished: "", ReadyForDealer: ""}}
   )
 }
+app.post('/logout', (req, res) => {
+  console.log("HELP")
+  res.clearCookie('login', {
+      domain: req.cookies.login.username,
+      path: '/'
+  });});
