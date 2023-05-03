@@ -729,7 +729,10 @@ function showEveryCard(game) {
       document.getElementById("3hand").innerHTML = '<img class = "card" src="img/' + cards[0].split(" ")[1] + '.png"><img class = "card" src="img/' + cards[4].split(" ")[1] + '.png">';
       document.getElementById("2hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[5].split(" ")[1] + '.png">';
       document.getElementById("1hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[6].split(" ")[1] + '.png">';
-
+      if (user.Total == 21) {
+        alert("Blackjack! You win. Stats updated. Keep playing to see the dealer's cards.")
+        updatePlayer("won")
+      }
       // if (turn == user.username) {
       //   document.getElementById("stayButton").disabled = false;
       //   document.getElementById("hitButton").disabled = false;
@@ -739,12 +742,21 @@ function showEveryCard(game) {
       document.getElementById("3hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[4].split(" ")[1] + '.png">';
       document.getElementById("2hand").innerHTML = '<img class = "card" src="img/' + cards[1].split(" ")[1] + '.png"><img class = "card" src="img/' + cards[5].split(" ")[1] + '.png">';
       document.getElementById("1hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[6].split(" ")[1] + '.png">';
+      if (user.Total == 21) {
+        alert("Blackjack! You win. Stats updated. Keep playing to see the dealer's cards.")
+        updatePlayer("won")
+      }
     }
     else if (players[2] == user.username) {
       document.getElementById("3hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[4].split(" ")[1] + '.png">';
       document.getElementById("2hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[5].split(" ")[1] + '.png">';
       document.getElementById("1hand").innerHTML = '<img class = "card" src="img/' + cards[2].split(" ")[1] + '.png"><img class = "card" src="img/' + cards[6].split(" ")[1] + '.png">';
+      if (user.Total == 21) {
+        alert("Blackjack! You win. Stats updated. Keep playing to see the dealer's cards.")
+        updatePlayer("won")
+      }
     }
+    
     turnInterval = setInterval(frequentUpdate, 1000)
     if (game.Turn == user.username) {
       document.getElementById("stayButton").disabled = false;
@@ -992,23 +1004,33 @@ function getFinalStanding(dealerTotal) {
     }).then((dealer) => {
       dealerTotal = dealer.Total
     if (user.Total < 22) {
-      if (user.Total > dealerTotal) {
-        alert("You won against the dealer! Stats updated. Press start to play again.")
+      if (dealer.Total > 22) {
+        alert("Dealer busted. You win. Stats updated.")
         updatePlayer("won")
         document.getElementById("startButton").disabled = false;
         document.getElementById("betinput").disabled = false;
+        window.location.href = "./home.html"
+      }
+      if (user.Total > dealerTotal) {
+        alert("You won against the dealer! Stats updated.")
+        updatePlayer("won")
+        document.getElementById("startButton").disabled = false;
+        document.getElementById("betinput").disabled = false;
+        window.location.href = "./home.html"
       }
       else if (user.Total < dealerTotal) {
-        alert("You lost against the dealer. Press start to play again.")
+        alert("You lost against the dealer. Stats updated.")
         updatePlayer("lost")
         document.getElementById("startButton").disabled = false;
         document.getElementById("betinput").disabled = false;
+        window.location.href = "./home.html"
       }
       else if (user.Total == dealerTotal) {
-        alert("You tied with the dealer. Stats updated. Press start to play again.")
+        alert("You tied with the dealer. Stats updated.")
         updatePlayer("tied")
         document.getElementById("startButton").disabled = false;
         document.getElementById("betinput").disabled = false;
+        window.location.href = "./home.html"
       }
     }
   })
