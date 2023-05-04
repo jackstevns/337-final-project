@@ -644,6 +644,7 @@ function codeGame() {
 function multiGame() {
   getUser();
   setNamesInGameRoom();
+  pCheckinterval = setInterval(playerCheck, 3000)
 }
 
 function setNamesInGameRoom() {
@@ -861,6 +862,41 @@ function frequentUpdate() {
     }
   })
 }
+
+
+
+function playerCheck() {
+  console.log("WHERE ARE MY PLAYERS")
+  fetch('/check/forcequit/').then((results) => {
+    return results.text()
+  }).then((result) => {
+    if (result == "QUIT") {
+      alert("A PLAYER HAS LEFT! We are redirecting to home...")
+      gameInSession = false;
+      clearInterval(pCheckinterval)
+      let retval = "left"
+      return retval
+      
+    }}).then((text) => {
+      if(text == "left"){
+      window.location.href = "./home.html"
+      }
+    })
+}
+
+function multiExit() {
+  fetch("/player/left/").then(() =>{
+  if(gameInSession){
+      gameInSession = false;
+      console.log("Player left")
+      updatePlayer("left");
+      clearInterval(pCheckinterval)
+    }else{
+    console.log("leaving")
+    window.location.href = "./home.html"}
+  })
+}
+
 
 function updateOtherUserCards() {
   fetch('/get/user').then((userRes) => {

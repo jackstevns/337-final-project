@@ -70,6 +70,7 @@ var GameSchema = new mongoose.Schema({
   Start: Number,
   Hands: [String],
   Finished: Boolean,
+  ForceQuit:Boolean, 
   ReadyForDealer: Number
 })
 var Game = mongoose.model('Game', GameSchema);
@@ -690,7 +691,7 @@ function loadcards(currentUser, res) {
 app.post('/new/random/game/', (req, res) => {
   console.log('finding new game')
   let un = req.body.username;
-  Game.find({ "Players.2": { $exists: false }, Code: { $exists: false } }).exec().then((results) => {
+  Game.find({ "Players.2": { $exists: false }, Code: { $exists: false }, Finished: false }).exec().then((results) => {
     if (results.length > 0) {
       let curID = results[0]._id;
       Game.updateOne(
@@ -710,7 +711,9 @@ app.post('/new/random/game/', (req, res) => {
     else {
       var newGame = new Game({
         Players: [un],
-        Turn: un
+        Turn: un,
+        ForceQuit: false,
+        Finished: false
       });
       newGame.save().then(() => {
         User.updateOne(
@@ -735,7 +738,9 @@ app.post('/new/code/game/', (req, res) => {
       var newGame = new Game({
         Players: [un],
         Code: code,
-        Turn: un
+        Turn: un,
+        ForceQuit: false,
+        Finished: false
       });
       newGame.save().then(() => {
         User.updateOne(
@@ -1276,6 +1281,38 @@ app.get('/is/it/my/turn/yet/', (req, res) => {
     }
   })
 })
+
+app.get('/check/forcequit/', (req, res) => {
+  let n = req.cookies.login.username
+  Game.find({ Players: n }).exec().then((gameRes) => {
+    if (gameRes[0]) {
+      console.log(gameRes[0].ForceQuit)
+      if (gameRes[0].ForceQuit) {
+        res.end("QUIT")
+      }
+      else {
+        res.end("STAY")
+      }
+    }
+  })
+})
+
+app.get('/player/left/', (req, res) => {
+  let n = req.cookies.login.username
+  Game.find({ Players: n }).exec().then((gameRes) => {
+    if (gameRes[0]) {
+      Game.updateOne(
+      { _id: gameRes[0]._id },
+      { $set: { ForceQuit: true,
+                Finished: true },
+        $pull: { Players: req.cookies.login.username} }
+      ).then(() => {
+        res.end()
+      })
+      }
+    })
+  })
+
 
 app.get('/is/it/the/dealers/turn', (req, res) => {
   let n = req.cookies.login.username
