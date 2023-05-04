@@ -136,13 +136,9 @@ function multiPlayer() {
   window.location.href = '/mode.html'
 }
 
-function exit() {
-  window.location.href = '/home.html'
-}
-
 function signOut() {
   console.log("SIGNING OUT")
-  fetch('/logout', { method: 'POST', credentials: 'same-origin' })
+  fetch('/logout', { method: 'POST' })
 .then(() =>{
   window.location.href = '/index.html'
 })}
@@ -297,6 +293,11 @@ function updatePlayer(outcome) {
         newBal -= Number(curBet);
         newLosses += 1;
       }
+      if (outcome == "left") {
+        newBal -= 10;
+        newLosses += 1;
+        window.location.href = "./home.html"
+      }
       else if (outcome == "won") {
         newBal += Number(curBet);
         newBal * 1;
@@ -434,7 +435,10 @@ function clearCardDisplay() {
 }
 
 function exit() {
-  window.location.href = './home.html';
+  if(gameInSession){
+  gameInSession = false;
+  console.log("Player left")
+  updatePlayer("left");}
 }
 
 function randomRoom() {
@@ -811,7 +815,7 @@ function hitMulti() {
               if (text2.Total > 21) {
                 gameInSession = false;
                 bustedMulti("You busted. Keep watching to see the dealer's cards.");
-                updatePlayer("lost");
+                //updatePlayer("lost");
               }
               else {
                 //document.getElementById("totalDetails").innerHTML = 'Total: ' + text2.Total;
@@ -1013,7 +1017,7 @@ function getFinalStanding(dealerTotal) {
         document.getElementById("betinput").disabled = false;
         window.location.href = "./home.html"
       }
-      if (user.Total > dealerTotal) {
+      else if (user.Total > dealerTotal) {
         alert("You won against the dealer! Stats updated.")
         updatePlayer("won")
         document.getElementById("startButton").disabled = false;
@@ -1030,6 +1034,13 @@ function getFinalStanding(dealerTotal) {
       else if (user.Total == dealerTotal) {
         alert("You tied with the dealer. Stats updated.")
         updatePlayer("tied")
+        document.getElementById("startButton").disabled = false;
+        document.getElementById("betinput").disabled = false;
+        window.location.href = "./home.html"
+      }
+      else if (user.Total > 21) {
+        alert("You Losed. Stats updated.")
+        updatePlayer("lost")
         document.getElementById("startButton").disabled = false;
         document.getElementById("betinput").disabled = false;
         window.location.href = "./home.html"
