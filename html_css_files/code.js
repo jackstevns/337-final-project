@@ -1,9 +1,21 @@
+/**
+ * File: code.js
+ * Authors: Alisha Stadler & Jack Stevens
+ * CSC 337 Spring 2023
+ * 
+ * This file represents the client-side code
+ * of a game of blackjack.
+ */
 
 gameInSession = false;
 curBet = 0;
 document.getElementById("stayButton")
-
 currentUser = ''
+
+/**
+ * This function sends a post request to the server to 
+ * create a user in the database when they sign up
+ */
 function createUser() {
   let n = document.getElementById('username').value;
   let pw = document.getElementById('password').value;
@@ -26,7 +38,10 @@ function createUser() {
   });
 }
 
-
+/**
+ * This function sends a post request to the server to
+ * login an established user
+ */
 function login() {
   var user = document.getElementById('username').value;
   let pass = document.getElementById('password').value;
@@ -52,7 +67,10 @@ function login() {
     });
 }
 
-// Will get the currents users name.
+/**
+ * This function gets the user's information from the server to
+ * display their stats on their screen.
+ */
 function getUser() {
   url = '/get/user'
   fetch(url)
@@ -94,19 +112,25 @@ function getUser() {
       if (unWaiting) {
         unWaiting.innerText = text.username;
       }
-
-
     })
 }
 
+/**
+ * Changes location when button clicked
+ */
 function singlePlayer() {
   window.location.href = '/singleGame.html'
 }
 
+/**
+ * Changes location when button clicked
+ */
 function multiPlayer() {
   window.location.href = '/mode.html'
 }
-
+/**
+ * Changes location when button clicked and removes cookies
+ */
 function signOut() {
   console.log("SIGNING OUT")
   fetch('/logout', { method: 'POST' })
@@ -114,11 +138,18 @@ function signOut() {
   window.location.href = '/index.html'
 })}
 
+/**
+ * Changes location when button clicked
+ */
 function returnHome(){ 
   window.location.href = '/home.html'
 }
 
 hands = {}
+/**
+ * Starts a single player game and reads bet amount.
+ * Makes fetch requests to the server to properly play the game
+ */
 function start() {
   curBet = document.getElementById("betinput").value;
   fetch('/get/user')
@@ -198,6 +229,9 @@ function start() {
 }
 
 currentTotal = 0;
+/**
+ * Hits the current user with a card using fetch requests
+ */
 function hit() {
   if (gameInSession) {
     currentTotal = 0;
@@ -245,7 +279,9 @@ function hit() {
   }
 }
 
-
+/**
+ * Updates players stats after game is over
+ */
 function updatePlayer(outcome) {
   url = '/get/user'
   fetch(url)
@@ -295,6 +331,9 @@ function updatePlayer(outcome) {
 
 
 DealercurrentTotal = 0;
+/**
+ * represents end of user turn and start of dealer turn in single player
+ */
 function stay() {
   if (gameInSession) {
     showCards("");
@@ -369,6 +408,9 @@ function stay() {
   }
 }
 
+/**
+ * Shows the dealer's cards after player selects stay
+ */
 function showCards(message) {
   currentTotal = 0;
   fetch('/get/dealer/')
@@ -400,11 +442,17 @@ function showCards(message) {
     })
 }
 
+/**
+ * Clears the card display after game is over
+ */
 function clearCardDisplay() {
   document.getElementById("currentHand").innerHTML = "";
   document.getElementById("dealerhand") = "";
 }
 
+/**
+ * exits game room
+ */
 function exit() {
   if (gameInSession){
     gameInSession = false;
@@ -416,7 +464,9 @@ function exit() {
   }
 }
 
-
+/**
+ * Exits waiting room
+ */
 function waitingExit() {
   if (gameInSession){
     gameInSession = false;
@@ -430,14 +480,23 @@ function waitingExit() {
   }
 }
 
+/**
+ * enters random waiting room
+ */
 function randomRoom() {
   window.location.href = './waitingRandom.html'
 }
 
+/**
+ * Cretes random waiting room
+ */
 function createRoom() {
   window.location.href = './waitingCustom.html'
 }
 
+/**
+ * Joins a waiting room
+ */
 function joinRoom() {
   thisCode = document.getElementById('code').value;
   if (thisCode != "") {
@@ -472,18 +531,27 @@ function joinRoom() {
 
 }
 
+/**
+ * Joins a waiting room by code
+ */
 function joinedByCode() {
   getUser();
   setInterval(sillyLittleAnimation, 1000);
   setInterval(updateWaiting, 3000)
 }
 
+/**
+ * calls other functions from waiting room
+ */
 function randomWaiting() {
   getUser();
   setInterval(sillyLittleAnimation, 1000);
   randomGame();
 }
 
+/**
+ * Random animation
+ */
 function sillyLittleAnimation() {
   x = document.getElementById("waitingLine").innerText;
   if (x == "Waiting for players") {
@@ -500,6 +568,9 @@ function sillyLittleAnimation() {
   }
 }
 
+/**
+ * Starts a random multiplayer game
+ */
 function randomGame() {
   fetch('/get/user')
     .then((results) => {
@@ -527,6 +598,9 @@ function randomGame() {
     })
 }
 
+/**
+ * Updates the waiting room to reflect other players
+ */
 function updateWaiting() {
   fetch('/waiting/players/').then((result) => {
     return result.json()
@@ -587,6 +661,9 @@ function updateWaiting() {
   })
 }
 
+/**
+ * Checks if game can start by communicating with server
+ */
 function canGameStart() {
   console.log('checking game ready')
   fetch('/is/game/ready/').then((results) => {
@@ -601,12 +678,18 @@ function canGameStart() {
   })
 }
 
+/**
+ * Creates a waiting room to join by code
+ */
 function createWaiting() {
   getUser();
   setInterval(sillyLittleAnimation, 1000);
   codeGame();
 }
 
+/**
+ * Starts a multiplayer game from a coded waiting room
+ */
 function codeGame() {
   fetch('/get/user')
     .then((results) => {
@@ -634,12 +717,18 @@ function codeGame() {
     })
 }
 
+/**
+ * Starts a multiplayer game
+ */
 function multiGame() {
   getUser();
   setNamesInGameRoom();
   pCheckinterval = setInterval(playerCheck, 3000)
 }
 
+/**
+ * Updates screen in game room with other player's names
+ */
 function setNamesInGameRoom() {
   fetch('/waiting/players/').then((result) => {
     return result.json()
@@ -671,6 +760,9 @@ function setNamesInGameRoom() {
   })
 }
 
+/**
+ * Starts the multiplayer game
+ */
 function startMulti() {
   curBet = document.getElementById("betinput").value;
   fetch('/get/user').then((results) => {
@@ -704,6 +796,9 @@ function startMulti() {
   })
 }
 
+/**
+ * Checks if all players are ready and game can start
+ */
 function checkGameStart() {
   console.log('here')
   fetch('/are/cards/dealt').then((results) => {
@@ -717,6 +812,9 @@ function checkGameStart() {
   })
 }
 
+/**
+ * Shows other player's cards
+ */
 function showEveryCard(game) {
   players = game.Players;
   cards = game.Hands;
@@ -770,6 +868,9 @@ function showEveryCard(game) {
 }
 var rand1 = 0;
 var rand2 = 0;
+/**
+ * Hits player in multiplayer mode
+ */
 function hitMulti() {
   if (gameInSession) {
     currentTotal = 0;
@@ -834,6 +935,9 @@ function hitMulti() {
   }
 }
 
+/**
+ * Busts in multiplayer mode
+ */
 function bustedMulti(message) {
   alert(message)
   rand1 = 0;
@@ -843,6 +947,9 @@ function bustedMulti(message) {
   fetch('/switch/turn')
 }
 
+/**
+ * Stays in multiplayer mode
+ */
 function stayMulti() {
   fetch('/switch/turn')
   rand1 = 0;
@@ -852,6 +959,9 @@ function stayMulti() {
 }
 
 frequentCount = 0
+/**
+ * updates screen for other player's cards
+ */
 function frequentUpdate() {
   console.log('checking if its my turn')
   fetch('/is/it/my/turn/yet/').then((results) => {
@@ -870,7 +980,9 @@ function frequentUpdate() {
 }
 
 
-
+/**
+ * Checks if player left waiting room
+ */
 function playerCheck() {
   //console.log("WHERE ARE MY PLAYERS")
   fetch('/check/forcequit/').then((results) => {
@@ -890,6 +1002,9 @@ function playerCheck() {
     })
 }
 
+/**
+ * Exits game
+ */
 function multiExit() {
   fetch("/player/left/").then(() =>{
   if(gameInSession){
@@ -903,7 +1018,9 @@ function multiExit() {
   })
 }
 
-
+/**
+ * Updates other player's cards
+ */
 function updateOtherUserCards() {
   fetch('/get/user').then((userRes) => {
     return userRes.json()
@@ -966,6 +1083,9 @@ function updateOtherUserCards() {
   })
 }
 
+/**
+ * Shows dealer's cards
+ */
 function initialShowDealer() {
   fetch('/get/dealer/multi').then((result) => {
     return result.json()
@@ -1003,6 +1123,9 @@ function initialShowDealer() {
   })
 }
 
+/**
+ * Shows dealer's cards
+ */
 function showDealerCards() {
   fetch('/get/dealer/multi').then((result) => {
     return result.json()
@@ -1043,6 +1166,9 @@ function showDealerCards() {
   })
 }
 
+/**
+ * Gets win or loss or tie and updates stats 
+ */
 function getFinalStanding(dealerTotal) {
   console.log('here')
   fetch('/get/user').then((result) => {
@@ -1094,6 +1220,9 @@ function getFinalStanding(dealerTotal) {
 
 }
 
+/**
+ * Shows other player's cards
+ */
 function showOtherCards(game) {
   players = game.Players;
   cards = game.Hands;
