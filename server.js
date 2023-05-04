@@ -12,14 +12,14 @@ const express = require('express');
 const parser = require('body-parser')
 const fs = require('fs');
 const cookieParser = require('cookie-parser');
-const multer = require('multer');
+// const multer = require('multer');
 const path = require('path');
-const { fail } = require('assert');
+// const { fail } = require('assert');
 const app = express();
 const server = require('http').createServer(app)
 const crypto = require('crypto');
 const cm = require('./customsessions');
-const { setUncaughtExceptionCaptureCallback } = require('process');
+// const { setUncaughtExceptionCaptureCallback } = require('process');
 
 cm.sessions.startCleanup();
 
@@ -30,7 +30,7 @@ mongoose.connection.on('error', () => {
   console.log('There was a problem connecting to mongoDB');
 });
 
-// creates Schema for items 
+// creates Schema for card 
 var CardSchema = new mongoose.Schema({
   Suit: String,
   Name: String,
@@ -40,7 +40,7 @@ var CardSchema = new mongoose.Schema({
 });
 var Card = mongoose.model('Card', CardSchema);
 
-// creates Schema for 
+// creates Schema for users
 var UserSchema = new mongoose.Schema({
   username: String,
   salt: Number,
@@ -56,12 +56,14 @@ var UserSchema = new mongoose.Schema({
 });
 var User = mongoose.model('User', UserSchema);
 
+// creates Schema for deck
 var DeckSchema = new mongoose.Schema({
   Game: String,
   Cards: [Number]
 });
 var Deck = mongoose.model('Deck', DeckSchema);
 
+// creates Schema for game
 var GameSchema = new mongoose.Schema({
   Players: [String],
   Deck: Object,
@@ -74,7 +76,7 @@ var GameSchema = new mongoose.Schema({
   ReadyForDealer: Number
 })
 var Game = mongoose.model('Game', GameSchema);
-//Game.find({}).deleteMany().exec();
+
 
 
 // It will redirected the page back to the login 
@@ -107,9 +109,9 @@ app.use(express.static('html_css_files'))
 
 app.use(parser.urlencoded({ extended: true }));
 app.use(express.json())
-const upload = multer({ dest: __dirname + '/public_html/app' });
 
 
+//authenication 
 app.use('*', (req, res, next) => {
   let c = req.cookies;
   if (c && c.login) {
@@ -128,6 +130,7 @@ app.get('/start/deal/', (req, res) => {
   resetDeck(currentUser, res)
 })
 
+//get the deck ready to play
 function resetDeck(currentUser, res) {
   p1 = Card.updateMany({ Player: { $regex: `^(?!.*In Deck)` } },
     { $set: { Player: "In Deck" } })
@@ -167,7 +170,7 @@ function resetDeck(currentUser, res) {
 }
 
 
-
+// add cards to database
 function newCards(currentUser, res) {
   let p = Card.find({}).deleteMany().exec().then((result) => {
     //console.log(result)
@@ -195,6 +198,7 @@ function newCards(currentUser, res) {
   })
 }
 
+// creates new deck 
 function makeDeck(curUser, res) {
   Deck.find({ Game: curUser }).deleteMany().exec().then(() => {
     deckArr = shuffleDeck();
@@ -209,6 +213,7 @@ function makeDeck(curUser, res) {
   })
 }
 
+// shuffles deck 
 function shuffleDeck() {
   var arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51]
   let curIndex = arr.length, randomIndex;
@@ -221,7 +226,7 @@ function shuffleDeck() {
   //console.log(arr)
   return arr;
 }
-
+//deals 2 cards 
 function deal2(currentUser, gameHolder, res) {
   console.log('dealing ' + currentUser)
   User.find({ username: currentUser }).exec().then((userRes) => {
@@ -282,7 +287,7 @@ function deal2(currentUser, gameHolder, res) {
     })
   })
 }
-
+// checks for ace switch
 function initialAceCheck(currentUser) {
   User.find({ username: currentUser }).exec().then((userRes) => {
     let suit1 = userRes[0].CurrentHand[0].Suit;
@@ -305,7 +310,7 @@ function initialAceCheck(currentUser) {
     }
   })
 }
-
+// commits ace switch
 function aceCheck(userData, i, final, res) {
   return new Promise((resolve, reject) => {
     if (userData.CurrentHand[i].Value != 11) {
@@ -353,7 +358,7 @@ function aceCheck(userData, i, final, res) {
     }
   })
 }
-
+// calls ace check 
 async function callAceCheck(us, res) {
   let i = 0;
   for (i; i < us.CurrentHand.length; i++) {
@@ -364,7 +369,7 @@ async function callAceCheck(us, res) {
   }
   return;
 }
-
+// update ace
 async function updateAce(userData) {
   const query = { username: userData.username, "CurrentHand.Value": 11 };
   //console.log(query)
@@ -375,11 +380,11 @@ async function updateAce(userData) {
   const result = await User.updateOne(query, updateDocument);
   return result;
 }
-
+//get the hand of user
 app.get('/get/hand/', (req, res) => {
   res.end(JSON.stringify(hand))
 })
-
+// hit button on single player
 app.get('/hit/card/', (req, res) => {
   let currentUser = req.cookies.login.username;
   User.find({ username: currentUser }).exec().then((results) => {
@@ -431,7 +436,7 @@ app.get('/hit/card/', (req, res) => {
     })
   })
 })
-
+// route for check ace
 app.get('/check/ace/', (req, res) => {
   let currentUser = req.cookies.login.username;
   User.find({ username: currentUser }).exec().then((results) => {
@@ -517,11 +522,12 @@ app.post('/add/user/', (req, res) => {
       }
     });
 });
+// starts server
 const port = 80;
 server.listen(port, () => {
   console.log('server has started');
 });
-
+// gets user data
 app.get('/get/user', (req, res) => {
   if (req.cookies && req.cookies.login) {
     User.find({ username: req.cookies.login.username }).exec()
@@ -530,14 +536,14 @@ app.get('/get/user', (req, res) => {
       })
   }
 });
-
+// gets dealer data 
 app.get('/get/dealer', (req, res) => {
   User.find({ username: "Dealer" }).exec()
     .then((doc) => {
       res.end(JSON.stringify(doc[0]));
     })
 });
-
+//gets the dealers turn 
 app.get('/turn/dealer/', (req, res) => {
   final = ''
   var currentUser = req.cookies.login.username
@@ -607,7 +613,7 @@ app.get('/turn/dealer/', (req, res) => {
 
   })
 })
-
+// get the new card to the player 
 function newCard(currentUser, gameHolder, oldLength, res) {
   Deck.find({ Game: gameHolder }).exec().then((deckRes) => {
     Card.find({ PlaceInDeck: deckRes[0].Cards[0] }).exec().then((cardRes) => {
@@ -639,7 +645,7 @@ function newCard(currentUser, gameHolder, oldLength, res) {
     })
   })
 }
-
+//updates the player 
 app.post('/update/player/', (req, res) => {
   let p = User.find({ username: req.cookies.login.username }).exec()
     .then((doc) => {
@@ -654,7 +660,7 @@ app.post('/update/player/', (req, res) => {
         });
     })
 })
-
+//loads cards into the database
 function loadcards(currentUser, res) {
   let p = Card.find({}).deleteMany().exec().then((result) => {
     console.log(result)
@@ -688,7 +694,7 @@ function loadcards(currentUser, res) {
     });
   })
 }
-
+//get a new random game 
 app.post('/new/random/game/', (req, res) => {
   console.log('finding new game')
   let un = req.body.username;
@@ -730,7 +736,7 @@ app.post('/new/random/game/', (req, res) => {
     }
   })
 });
-
+//get the code for game
 app.post('/new/code/game/', (req, res) => {
   console.log('creating coded game');
 
@@ -778,7 +784,7 @@ app.post('/new/code/game/', (req, res) => {
     }
   })
 })
-
+// generates the code 
 function makeCode() {
   let result = '';
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -789,7 +795,7 @@ function makeCode() {
   }
   return result;
 }
-
+/// finds waiting players 
 app.get('/waiting/players/', (req, res) => {
   console.log('finding waiting players')
   let un = req.cookies.login.username;
@@ -808,7 +814,7 @@ app.get('/waiting/players/', (req, res) => {
 
   })
 })
-
+// checks to start the game 
 app.get('/is/game/ready/', (req, res) => {
   console.log('finding if game is ready')
   let un = req.cookies.login.username;
@@ -823,11 +829,11 @@ app.get('/is/game/ready/', (req, res) => {
     }
   })
 });
-
+//deletes card on start
 console.log('deleting games')
 Game.find({}).deleteMany().exec().then(() => {
 })
-
+// get the input of the code
 app.post('/enter/code/room', (req, res) => {
   let un = req.body.username;
   let code = req.body.code;
@@ -854,7 +860,7 @@ app.post('/enter/code/room', (req, res) => {
     }
   })
 })
-
+// check if player has hit stay 
 app.post('/player/ready/', (req, res) => {
   let n = req.cookies.login.username;
   Game.find({ Players: n }).exec().then((results) => {
@@ -877,7 +883,7 @@ app.post('/player/ready/', (req, res) => {
     })
   })
 })
-
+// deals the multiplayer game
 function multiGameDealing(thisString, gameObj, res) {
   Deck.find({ Game: thisString }).exec().then((deckRes) => {
     if (deckRes.length[0]) {
@@ -907,6 +913,7 @@ function multiGameDealing(thisString, gameObj, res) {
   })
 }
 
+// checks if they are uploaded
 app.get('/are/cards/dealt/', (req, res) => {
   let n = req.cookies.login.username;
   Game.find({ Players: n }).exec().then((results) => {
@@ -914,7 +921,7 @@ app.get('/are/cards/dealt/', (req, res) => {
     res.end(JSON.stringify(results[0]))
   })
 })
-
+// gets new cards
 function newCards2(currentUser, gameObject) {
   let p = Card.find({}).deleteMany().exec().then((result) => {
     //console.log(result)
@@ -941,7 +948,7 @@ function newCards2(currentUser, gameObject) {
     });
   })
 }
-
+//makes deck for 2 player
 function makeDeck2(curUser, gameObject) {
   Deck.find({ Game: curUser }).deleteMany().exec().then(() => {
     deckArr = shuffleDeck();
@@ -956,7 +963,7 @@ function makeDeck2(curUser, gameObject) {
     })
   })
 }
-
+// dealing logic
 function dealingLogic(gameName, gameObject) {
 
   players = gameObject.Players;
@@ -965,7 +972,7 @@ function dealingLogic(gameName, gameObject) {
   })
 
 }
-
+// deal 3 
 function deal3(currentUser, gameHolder, players, dealtNum, gameID) {
   console.log('dealing ' + currentUser)
   User.find({ username: currentUser }).exec().then((userRes) => {
@@ -1027,7 +1034,7 @@ function deal3(currentUser, gameHolder, players, dealtNum, gameID) {
     })
   })
 }
-
+// get all cards 
 app.get('/all/players/cards', (req, res) => {
   let n = req.cookies.login.username;
   Game.find({ Players: n }).exec().then((results) => {
@@ -1035,7 +1042,7 @@ app.get('/all/players/cards', (req, res) => {
     res.end(JSON.stringify(results[0]))
   })
 })
-
+// hit cards multiplayer 
 app.get('/hit/card/multi/', (req, res) => {
   let currentUser = req.cookies.login.username;
   console.log('hitting ' + currentUser)
@@ -1108,7 +1115,7 @@ app.get('/hit/card/multi/', (req, res) => {
     })
   })
 })
-
+// switches turns 
 app.get('/switch/turn', (req, res) => {
   let n = req.cookies.login.username
   Game.find({ Players: n }).exec().then((gameRes) => {
@@ -1138,7 +1145,7 @@ app.get('/switch/turn', (req, res) => {
     }
   })
 })
-
+// determines if dealer should hit again 
 function shouldHitDealer(gameID) {
   Game.find({ _id: gameID }).exec().then((gameRes) => {
     dealerString = "Dealer" + gameRes[0].Players.join("")
@@ -1163,7 +1170,7 @@ function shouldHitDealer(gameID) {
     })
   })
 }
-
+// function hitting of the dealer 
 function hitDealerMulti(dealerName, gameID) {
   let currentUser = dealerName;
   console.log('hitting ' + currentUser)
@@ -1222,50 +1229,28 @@ function hitDealerMulti(dealerName, gameID) {
     })
   })
 }
-
+// checks the dealer
 function aceCheckDealer(userData, i, final) {
   return new Promise((resolve, reject) => {
     if (userData.CurrentHand[i].Value != 11) {
-      //console.log('in ace check, card is not an ace, returning to route')
+      
       resolve();
-      // User.find({ username: userData.username }).exec().then((results) => {
-      //   console.log("i=" + i + ", " + results[0].Total)
-      //   if (i == final) {
-      //     console.log('i == final, sending back to route')
-      //     res.end(JSON.stringify(results[0]))
-      //   }
-      // })
+    
     }
     else {
       changeStr = "CurrentHand." + i + ".Value";
-      //console.log(userData.CurrentHand[i].Value);
+      
       updateAceDealer(userData).then((changeRes) => {
         console.log(changeRes)
         console.log('updated value of ace to 1, this is the hand now:')
         resolve()
-        // User.find({ username: userData.username }).exec().then((results) => {
-        //   if (i == final) {
-        //     //console.log('i == final, sending back to route')
-        //     resolve()
-
-        //   }
-        //   else if (results[0].Total < 21) {
-        //     resolve()
-        //   }
-        //     else {
-        //       //console.log('total is <21 now, sending back to client')
-        //       resolve()
-        //     }
-
-        //   }
-
-        // )
+       
       }
       )
     }
   })
 }
-
+// check the ace of dealer 
 async function callAceCheckDealer(us) {
   let i = 0;
   for (i; i < us.CurrentHand.length; i++) {
@@ -1277,7 +1262,7 @@ async function callAceCheckDealer(us) {
   console.log('checked all cards in hand')
   return;
 }
-
+// updates dealer 
 async function updateAceDealer(userData) {
   const query = { username: userData.username, "CurrentHand.Value": 11 };
   //console.log(query)
@@ -1288,7 +1273,7 @@ async function updateAceDealer(userData) {
   const result = await User.updateOne(query, updateDocument);
   return result;
 }
-
+// end game will set finished to true 
 function endGame(dealerString, gameID) {
   Game.updateOne(
     { _id: gameID },
@@ -1297,7 +1282,7 @@ function endGame(dealerString, gameID) {
 
   })
 }
-
+// check to see if its players turn 
 app.get('/is/it/my/turn/yet/', (req, res) => {
   let n = req.cookies.login.username
   Game.find({ Players: n }).exec().then((gameRes) => {
@@ -1311,7 +1296,7 @@ app.get('/is/it/my/turn/yet/', (req, res) => {
     }
   })
 })
-
+// 
 app.get('/check/forcequit/', (req, res) => {
   let n = req.cookies.login.username
   Game.find({ Players: n }).exec().then((gameRes) => {
@@ -1421,23 +1406,3 @@ app.post('/logout', (req, res) => {
   res.end()
 });
 
-app.get('/remove/player/from/waiting', (req, res) => {
-  un = req.cookies.login.username;
-  Game.find({ Players: un }).exec().then((gameRes) => {
-    var gameID = gameRes[0]._id
-    Game.updateOne(
-      { _id: gameID },
-      { $pull: { Players: un } }
-    ).then(() => {
-      Game.find({ _id: gameID }).exec().then((gameRes) => {
-        Game.find({ _id: gameID }).exec().then((gameRes) => {
-          var toTurn = gameRes[0].Players[0]
-          Game.updateOne(
-            { _id: gameID },
-            { $set: { Turn: toTurn } }
-          )
-        })
-      })
-    })
-  })
-})

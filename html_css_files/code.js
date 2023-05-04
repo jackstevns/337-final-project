@@ -410,11 +410,23 @@ function exit() {
     gameInSession = false;
     console.log("Player left")
     updatePlayer("left");
+  }
+  else {
+    window.location.href = './home.html'
+  }
+}
+
+
+function waitingExit() {
+  if (gameInSession){
+    gameInSession = false;
+    console.log("Player left")
+    updatePlayer("left");
     window.location.href = './home.html'
   }
   else {
     window.location.href = './home.html'
-    fetch('remove/player/from/waiting')
+    fetch('/remove/player/from/waiting')
   }
 }
 
