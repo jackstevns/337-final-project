@@ -1296,7 +1296,7 @@ app.get('/is/it/my/turn/yet/', (req, res) => {
     }
   })
 })
-// 
+//  check to see if there was force quits
 app.get('/check/forcequit/', (req, res) => {
   let n = req.cookies.login.username
   Game.find({ Players: n }).exec().then((gameRes) => {
@@ -1311,7 +1311,7 @@ app.get('/check/forcequit/', (req, res) => {
     }
   })
 })
-
+// player left 
 app.get('/player/left/', (req, res) => {
   let n = req.cookies.login.username
   Game.find({ Players: n }).exec().then((gameRes) => {
@@ -1332,7 +1332,7 @@ app.get('/player/left/', (req, res) => {
   })
 })
 
-
+// checks if dealer turn
 app.get('/is/it/the/dealers/turn', (req, res) => {
   let n = req.cookies.login.username
   Game.find({ Players: n }).exec().then((gameRes) => {
@@ -1346,13 +1346,13 @@ app.get('/is/it/the/dealers/turn', (req, res) => {
     }
   })
 })
-
+// updates user screen 
 app.get('/update/my/screen/', (req, res) => {
   Game.find({ Players: req.cookies.login.username }).exec().then((gameRes) => {
     res.end(JSON.stringify(gameRes[0]))
   })
 })
-
+// get dealer multipler
 app.get('/get/dealer/multi', (req, res) => {
   Game.find({ Players: req.cookies.login.username }).exec().then((gameRes) => {
     if (gameRes[0]) {
@@ -1365,7 +1365,7 @@ app.get('/get/dealer/multi', (req, res) => {
 
   })
 })
-
+// check if dealer ready
 app.get('/ready/for/dealer', (req, res) => {
   username = req.cookies.login.username;
   Game.find({ Players: username }).exec().then((gameRes) => {
@@ -1380,7 +1380,7 @@ app.get('/ready/for/dealer', (req, res) => {
     })
   })
 })
-
+// checks if dealer is done 
 app.get('/is/dealer/done', (req, res) => {
   username = req.cookies.login.username;
   Game.find({ Players: username }).exec().then((gameRes) => {
@@ -1392,7 +1392,7 @@ app.get('/is/dealer/done', (req, res) => {
     }
   })
 })
-
+// resets the multiplayer game 
 function resetMultiGame(gameID) {
   Game.updateOne(
     { _id: gameID },
@@ -1400,6 +1400,7 @@ function resetMultiGame(gameID) {
     { $unset: { Turn: "", Start: "", Deck: "", Finished: "", ReadyForDealer: "" } }
   )
 }
+// does the logout mechaincs
 app.post('/logout', (req, res) => {
   console.log("HELP")
   res.clearCookie('login');
