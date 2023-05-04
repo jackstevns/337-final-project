@@ -94,12 +94,13 @@ function authenticate(req, res, next) {
 
 
 app.use(cookieParser())
-app.use( '/home.html', authenticate);
+app.use('/home.html', authenticate);
 app.use('/mode.html', authenticate);
 app.use('/multiGame.html', authenticate);
 app.use('/singleGame.html', authenticate);
 app.use('/waitingCustom.html', authenticate);
-app.use('/Random.html', authenticate);
+app.use('/waitingRandom.html', authenticate);
+app.use('/help.html', authenticate);
 
 app.use(express.static('html_css_files'))
 
@@ -709,20 +710,22 @@ app.post('/new/random/game/', (req, res) => {
       })
     }
     else {
-      var newGame = new Game({
-        Players: [un],
-        Turn: un,
-        ForceQuit: false,
-        Finished: false
-      });
-      newGame.save().then(() => {
-        User.updateOne(
-          { username: un },
-          {
-            $set: { CurrentHand: [], Total: 0 }
-          }).then(() => {
-            res.end("Created")
-          })
+      Game.find({Players: un}).deleteMany().exec().then(() => {
+        var newGame = new Game({
+          Players: [un],
+          Turn: un,
+          ForceQuit: false,
+          Finished: false
+        });
+        newGame.save().then(() => {
+          User.updateOne(
+            { username: un },
+            {
+              $set: { CurrentHand: [], Total: 0 }
+            }).then(() => {
+              res.end("Created")
+            })
+        })
       })
     }
   })
@@ -750,6 +753,27 @@ app.post('/new/code/game/', (req, res) => {
           }).then(() => {
             res.end(code)
           })
+      })
+    }
+    else {
+      Game.find({Players: un}).deleteMany().exec().then(() => {
+        var code = makeCode()
+        var newGame = new Game({
+        Players: [un],
+        Code: code,
+        Turn: un,
+        ForceQuit: false,
+        Finished: false
+      });
+      newGame.save().then(() => {
+        User.updateOne(
+          { username: un },
+          {
+            $set: { CurrentHand: [], Total: 0 }
+          }).then(() => {
+            res.end(code)
+          })
+      })
       })
     }
   })
@@ -1214,7 +1238,7 @@ function aceCheckDealer(userData, i, final) {
       changeStr = "CurrentHand." + i + ".Value";
       //console.log(userData.CurrentHand[i].Value);
       updateAceDealer(userData).then((changeRes) => {
-        //console.log(changeRes)
+        console.log(changeRes)
         console.log('updated value of ace to 1, this is the hand now:')
         User.find({ username: userData.username }).exec().then((results) => {
           if (i == final) {
@@ -1286,7 +1310,7 @@ app.get('/check/forcequit/', (req, res) => {
   let n = req.cookies.login.username
   Game.find({ Players: n }).exec().then((gameRes) => {
     if (gameRes[0]) {
-      console.log(gameRes[0].ForceQuit)
+      //console.log(gameRes[0].ForceQuit)
       if (gameRes[0].ForceQuit) {
         res.end("QUIT")
       }
@@ -1336,11 +1360,14 @@ app.get('/update/my/screen/', (req, res) => {
 
 app.get('/get/dealer/multi', (req, res) => {
   Game.find({ Players: req.cookies.login.username }).exec().then((gameRes) => {
-    dealerString = "Dealer" + gameRes[0].Players.join("");
-    User.find({ username: dealerString }).exec()
-      .then((doc) => {
-        res.end(JSON.stringify(doc[0]));
-      })
+    if (gameRes[0]) {
+      dealerString = "Dealer" + gameRes[0].Players.join("");
+      User.find({ username: dealerString }).exec()
+        .then((doc) => {
+          res.end(JSON.stringify(doc[0]));
+        })
+    }
+    
   })
 })
 
@@ -1373,7 +1400,7 @@ app.get('/is/dealer/done', (req, res) => {
 
 function resetMultiGame(gameID) {
   Game.updateOne(
-    {_id: gameId},
+    {_id: gameID},
     { $set: {Players: [], Hands: []}},
     { $unset: {Turn:"", Start:"", Deck:"", Finished: "", ReadyForDealer: ""}}
   )

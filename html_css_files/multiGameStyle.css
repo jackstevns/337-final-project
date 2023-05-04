@@ -187,13 +187,6 @@ button{
     display: inline-block;
     width: 33vw;
   }
-  /* .playerHands {
-    margin-left: 8vw;
-    margin-right: 8vw;
-    margin-bottom: 1vw;
-    display: inline-block;
-  } */
-
   #players {
     text-align: left;
     margin-bottom: 10vw;

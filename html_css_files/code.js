@@ -52,35 +52,6 @@ function login() {
     });
 }
 
-
-
-//This function will send the post to create the item
-// This function will be called when the ADD ITEM button is
-// pressed. 
-function additems() {
-  let n = document.getElementById('title').value;
-  let d = document.getElementById('description').value;
-  let i = document.getElementById('image').value;
-  let p = document.getElementById('price').value;
-  let s = "SALE"
-  let url = '/add/item/' + currentUser;
-  let data = { title: n, description: d, image: i, price: p, stat: s };
-  let p1 = fetch(url, {
-    method: 'POST',
-    body: JSON.stringify(data),
-    headers: { "Content-Type": "application/json" }
-  });
-  p1.catch(() => {
-    alert('something went wrong');
-  });
-}
-
-
-
-
-
-
-
 // Will get the currents users name.
 function getUser() {
   url = '/get/user'
@@ -736,6 +707,7 @@ function showEveryCard(game) {
       document.getElementById("3hand").innerHTML = '<img class = "card" src="img/' + cards[0].split(" ")[1] + '.png"><img class = "card" src="img/' + cards[4].split(" ")[1] + '.png">';
       document.getElementById("2hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[5].split(" ")[1] + '.png">';
       document.getElementById("1hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[6].split(" ")[1] + '.png">';
+      document.getElementById("player3Details").innerHTML = "You<br>Total: " + user.Total;
       if (user.Total == 21) {
         alert("Blackjack! You win. Stats updated. Keep playing to see the dealer's cards.")
         updatePlayer("won")
@@ -749,6 +721,7 @@ function showEveryCard(game) {
       document.getElementById("3hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[4].split(" ")[1] + '.png">';
       document.getElementById("2hand").innerHTML = '<img class = "card" src="img/' + cards[1].split(" ")[1] + '.png"><img class = "card" src="img/' + cards[5].split(" ")[1] + '.png">';
       document.getElementById("1hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[6].split(" ")[1] + '.png">';
+      document.getElementById("player2Details").innerHTML = "You<br>Total: " + user.Total;      
       if (user.Total == 21) {
         alert("Blackjack! You win. Stats updated. Keep playing to see the dealer's cards.")
         updatePlayer("won")
@@ -758,7 +731,7 @@ function showEveryCard(game) {
       document.getElementById("3hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[4].split(" ")[1] + '.png">';
       document.getElementById("2hand").innerHTML = '<img class = "card" src="img/cardback.jpeg"><img class = "card" src="img/' + cards[5].split(" ")[1] + '.png">';
       document.getElementById("1hand").innerHTML = '<img class = "card" src="img/' + cards[2].split(" ")[1] + '.png"><img class = "card" src="img/' + cards[6].split(" ")[1] + '.png">';
-      if (user.Total == 21) {
+      document.getElementById("player1Details").innerHTML = "You<br>Total: " + user.Total;      if (user.Total == 21) {
         alert("Blackjack! You win. Stats updated. Keep playing to see the dealer's cards.")
         updatePlayer("won")
       }
@@ -797,12 +770,15 @@ function hitMulti() {
           //console.log(final)
           if (players[0] == text.username) {
             document.getElementById("3hand").innerHTML = final;
+            document.getElementById("player3Details").innerHTML = "You<br>Total: " + text.Total;
           }
           else if (players[1] == text.username) {
             document.getElementById("2hand").innerHTML = final;
+            document.getElementById("player2Details").innerHTML = "You<br>Total: " + text.Total;
           }
           else if (players[2] == text.username) {
             document.getElementById("1hand").innerHTML = final;
+            document.getElementById("player1Details").innerHTML = "You<br>Total: " + text.Total;
           }
           //document.getElementById("totalDetails").innerHTML = 'Total: ' + text.Total;
         }).then(() => {
@@ -819,7 +795,15 @@ function hitMulti() {
                 //updatePlayer("lost");
               }
               else {
-                //document.getElementById("totalDetails").innerHTML = 'Total: ' + text2.Total;
+                if (players[0] == text2.username) {
+                  document.getElementById("player3Details").innerHTML = 'Total: ' + text2.Total;
+                }
+                if (players[1] == text2.username) {
+                  document.getElementById("player2Details").innerHTML = 'Total: ' + text2.Total;
+                }
+                if (players[2] == text2.username) {
+                  document.getElementById("player1Details").innerHTML = 'Total: ' + text2.Total;
+                }
               }
             })
           }
@@ -866,7 +850,7 @@ function frequentUpdate() {
 
 
 function playerCheck() {
-  console.log("WHERE ARE MY PLAYERS")
+  //console.log("WHERE ARE MY PLAYERS")
   fetch('/check/forcequit/').then((results) => {
     return results.text()
   }).then((result) => {
@@ -976,6 +960,7 @@ function initialShowDealer() {
     //document.getElementById("dealerTotal").innerHTML = 'Total: ' + text.Total;
     if (current.innerHTML != final && final != "") {
       current.innerHTML = final
+      document.getElementById("dealerTotal").innerText = "Total: " + text.Total
       // if (message != "") {
       //   document.getElementById("startButton").disabled = false;
       //   document.getElementById("betinput").disabled = false;
@@ -1046,7 +1031,7 @@ function getFinalStanding(dealerTotal) {
     }).then((dealer) => {
       dealerTotal = dealer.Total
     if (user.Total < 22) {
-      if (dealer.Total > 22) {
+      if (dealer.Total > 21) {
         alert("Dealer busted. You win. Stats updated.")
         updatePlayer("won")
         document.getElementById("startButton").disabled = false;
@@ -1074,13 +1059,13 @@ function getFinalStanding(dealerTotal) {
         document.getElementById("betinput").disabled = false;
         window.location.href = "./home.html"
       }
-      else if (user.Total > 21) {
-        alert("You Losed. Stats updated.")
-        updatePlayer("lost")
-        document.getElementById("startButton").disabled = false;
-        document.getElementById("betinput").disabled = false;
-        window.location.href = "./home.html"
-      }
+    }
+    else if (user.Total > 21) {
+      alert("You Lost. Stats updated.")
+      updatePlayer("lost")
+      document.getElementById("startButton").disabled = false;
+      document.getElementById("betinput").disabled = false;
+      window.location.href = "./home.html"
     }
   })
   })
