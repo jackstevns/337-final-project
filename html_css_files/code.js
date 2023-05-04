@@ -406,10 +406,16 @@ function clearCardDisplay() {
 }
 
 function exit() {
-  if(gameInSession){
-  gameInSession = false;
-  console.log("Player left")
-  updatePlayer("left");}
+  if (gameInSession){
+    gameInSession = false;
+    console.log("Player left")
+    updatePlayer("left");
+    window.location.href = './home.html'
+  }
+  else {
+    window.location.href = './home.html'
+    fetch('remove/player/from/waiting')
+  }
 }
 
 function randomRoom() {
@@ -523,6 +529,9 @@ function updateWaiting() {
         })
         .then((user) => {
           if (players.length == 1) {
+            document.getElementById("usernameWaiting").innerText = players[0]
+            document.getElementById("p2").innerText = ""
+            document.getElementById("p3").innerText = ""
             console.log('in 1')
             return false;
           }
@@ -531,6 +540,7 @@ function updateWaiting() {
             // if (players[0] == user.username) {
             document.getElementById("usernameWaiting").innerText = players[0]
             document.getElementById("p2").innerText = players[1]
+            document.getElementById("p3").innerText = ""
             // } else {
             //   document.getElementById("p2").innerText = players[0]
             //}

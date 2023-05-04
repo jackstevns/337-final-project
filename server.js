@@ -70,7 +70,7 @@ var GameSchema = new mongoose.Schema({
   Start: Number,
   Hands: [String],
   Finished: Boolean,
-  ForceQuit:Boolean, 
+  ForceQuit: Boolean,
   ReadyForDealer: Number
 })
 var Game = mongoose.model('Game', GameSchema);
@@ -710,7 +710,7 @@ app.post('/new/random/game/', (req, res) => {
       })
     }
     else {
-      Game.find({Players: un}).deleteMany().exec().then(() => {
+      Game.find({ Players: un }).deleteMany().exec().then(() => {
         var newGame = new Game({
           Players: [un],
           Turn: un,
@@ -756,24 +756,24 @@ app.post('/new/code/game/', (req, res) => {
       })
     }
     else {
-      Game.find({Players: un}).deleteMany().exec().then(() => {
+      Game.find({ Players: un }).deleteMany().exec().then(() => {
         var code = makeCode()
         var newGame = new Game({
-        Players: [un],
-        Code: code,
-        Turn: un,
-        ForceQuit: false,
-        Finished: false
-      });
-      newGame.save().then(() => {
-        User.updateOne(
-          { username: un },
-          {
-            $set: { CurrentHand: [], Total: 0 }
-          }).then(() => {
-            res.end(code)
-          })
-      })
+          Players: [un],
+          Code: code,
+          Turn: un,
+          ForceQuit: false,
+          Finished: false
+        });
+        newGame.save().then(() => {
+          User.updateOne(
+            { username: un },
+            {
+              $set: { CurrentHand: [], Total: 0 }
+            }).then(() => {
+              res.end(code)
+            })
+        })
       })
     }
   })
@@ -834,17 +834,19 @@ app.post('/enter/code/room', (req, res) => {
 
   Game.find({ Code: code }).exec().then((results) => {
     if (results.length == 1) {
-      Game.updateOne(
-        { Code: code },
-        { $push: { Players: un } }
-      ).then(() => {
-        User.updateOne(
-          { username: un },
-          {
-            $set: { CurrentHand: [], Total: 0 }
-          }).then(() => {
-            res.end("Success")
-          })
+      Game.find({ Players: un }).deleteMany().exec().then(() => {
+        Game.updateOne(
+          { Code: code },
+          { $push: { Players: un } }
+        ).then(() => {
+          User.updateOne(
+            { username: un },
+            {
+              $set: { CurrentHand: [], Total: 0 }
+            }).then(() => {
+              res.end("Success")
+            })
+        })
       })
     }
     else {
@@ -864,7 +866,7 @@ app.post('/player/ready/', (req, res) => {
       { $inc: { Start: 1 } }
     ).then(() => {
       if (thisCount == 2) {
-        
+
         multiGameDealing(thisString, results[0], res);
       }
 
@@ -1146,7 +1148,7 @@ function shouldHitDealer(gameID) {
       }
       else if (dealerRes[0].Total > 21) {
         callAceCheckDealer(dealerRes[0])
-        User.find({username: dealerString}).exec().then((deal) => {
+        User.find({ username: dealerString }).exec().then((deal) => {
           if (deal[0].Total < 17) {
             hitDealerMulti(dealerString, gameID);
           }
@@ -1240,26 +1242,29 @@ function aceCheckDealer(userData, i, final) {
       updateAceDealer(userData).then((changeRes) => {
         console.log(changeRes)
         console.log('updated value of ace to 1, this is the hand now:')
-        User.find({ username: userData.username }).exec().then((results) => {
-          if (i == final) {
-            //console.log('i == final, sending back to route')
-            resolve()
+        resolve()
+        // User.find({ username: userData.username }).exec().then((results) => {
+        //   if (i == final) {
+        //     //console.log('i == final, sending back to route')
+        //     resolve()
 
-          }
-          else if (results[0].Total < 21) {
-            resolve()
-          }
-            else {
-              //console.log('total is <21 now, sending back to client')
-              resolve()
-            }
+        //   }
+        //   else if (results[0].Total < 21) {
+        //     resolve()
+        //   }
+        //     else {
+        //       //console.log('total is <21 now, sending back to client')
+        //       resolve()
+        //     }
 
-          }
+        //   }
 
-        )
+        // )
       }
-  )}
-    })}
+      )
+    }
+  })
+}
 
 async function callAceCheckDealer(us) {
   let i = 0;
@@ -1269,6 +1274,7 @@ async function callAceCheckDealer(us) {
       const result = await aceCheckDealer(us, i, us.CurrentHand.length - 1);
     }
   }
+  console.log('checked all cards in hand')
   return;
 }
 
@@ -1326,16 +1332,20 @@ app.get('/player/left/', (req, res) => {
   Game.find({ Players: n }).exec().then((gameRes) => {
     if (gameRes[0]) {
       Game.updateOne(
-      { _id: gameRes[0]._id },
-      { $set: { ForceQuit: true,
-                Finished: true },
-        $pull: { Players: req.cookies.login.username} }
+        { _id: gameRes[0]._id },
+        {
+          $set: {
+            ForceQuit: true,
+            Finished: true
+          },
+          $pull: { Players: req.cookies.login.username }
+        }
       ).then(() => {
         res.end()
       })
-      }
-    })
+    }
   })
+})
 
 
 app.get('/is/it/the/dealers/turn', (req, res) => {
@@ -1367,18 +1377,18 @@ app.get('/get/dealer/multi', (req, res) => {
           res.end(JSON.stringify(doc[0]));
         })
     }
-    
+
   })
 })
 
 app.get('/ready/for/dealer', (req, res) => {
   username = req.cookies.login.username;
-  Game.find({Players: username}).exec().then((gameRes) => {
+  Game.find({ Players: username }).exec().then((gameRes) => {
     gameId = gameRes[0]._id
   }).then(() => {
     Game.updateOne(
-      {_id: gameId},
-      {$inc: {ReadyForDealer: 1}}
+      { _id: gameId },
+      { $inc: { ReadyForDealer: 1 } }
     ).then(() => {
       console.log(username + " is ready for dealer")
       res.end("ready")
@@ -1388,9 +1398,9 @@ app.get('/ready/for/dealer', (req, res) => {
 
 app.get('/is/dealer/done', (req, res) => {
   username = req.cookies.login.username;
-  Game.find({Players: username}).exec().then((gameRes) => {
+  Game.find({ Players: username }).exec().then((gameRes) => {
     if (gameRes[0].Finished == true) {
-      setTimeout(() => {resetMultiGame(gameRes[0]._id)}, 10000)
+      setTimeout(() => { resetMultiGame(gameRes[0]._id) }, 10000)
       res.end("yes")
     } else {
       res.end("no")
@@ -1400,9 +1410,9 @@ app.get('/is/dealer/done', (req, res) => {
 
 function resetMultiGame(gameID) {
   Game.updateOne(
-    {_id: gameID},
-    { $set: {Players: [], Hands: []}},
-    { $unset: {Turn:"", Start:"", Deck:"", Finished: "", ReadyForDealer: ""}}
+    { _id: gameID },
+    { $set: { Players: [], Hands: [] } },
+    { $unset: { Turn: "", Start: "", Deck: "", Finished: "", ReadyForDealer: "" } }
   )
 }
 app.post('/logout', (req, res) => {
@@ -1410,3 +1420,24 @@ app.post('/logout', (req, res) => {
   res.clearCookie('login');
   res.end()
 });
+
+app.get('/remove/player/from/waiting', (req, res) => {
+  un = req.cookies.login.username;
+  Game.find({ Players: un }).exec().then((gameRes) => {
+    var gameID = gameRes[0]._id
+    Game.updateOne(
+      { _id: gameID },
+      { $pull: { Players: un } }
+    ).then(() => {
+      Game.find({ _id: gameID }).exec().then((gameRes) => {
+        Game.find({ _id: gameID }).exec().then((gameRes) => {
+          var toTurn = gameRes[0].Players[0]
+          Game.updateOne(
+            { _id: gameID },
+            { $set: { Turn: toTurn } }
+          )
+        })
+      })
+    })
+  })
+})
