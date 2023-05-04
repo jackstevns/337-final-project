@@ -17,7 +17,6 @@ const path = require('path');
 const { fail } = require('assert');
 const app = express();
 const server = require('http').createServer(app)
-const io = require('socket.io')(server, { cors: { origin: "*" } });
 const crypto = require('crypto');
 const cm = require('./customsessions');
 const { setUncaughtExceptionCaptureCallback } = require('process');
